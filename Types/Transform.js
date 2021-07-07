@@ -6,8 +6,10 @@ function Transform(spec={}, entity=null) {
   if (!entity && spec.entity)
     entity = spec.entity
   
-  const scale = spec.scale ? 
-    Vector2(spec.scale) :
+  const scale = spec.scale ?
+    _.isNumber(spec.scale) ?
+      Vector2(spec.scale, spec.scale) :
+      Vector2(spec.scale) :
     Vector2(spec.x || 1, spec.y || 1)
     
   const position = spec.position ? 
@@ -53,7 +55,7 @@ function Transform(spec={}, entity=null) {
     if (!output) output = point
     else output.set(point)
     
-    output.multiply(scale)
+    output.multiplyComponents(scale)
     output.rotate(rotator)
     output.add(position)
     
@@ -70,7 +72,7 @@ function Transform(spec={}, entity=null) {
     
     output.subtract(position)
     output.rotate(-rotation)
-    output.divide(scale)
+    output.divideComponents(scale)
     
     return output
   }
@@ -79,7 +81,7 @@ function Transform(spec={}, entity=null) {
     if (!output) output = point
     else output.set(point)
     
-    output.multiply(scale)
+    output.multiplyComponents(scale)
     output.rotate(rotator)
     
     tryApplyParent('transformDirection', point, output)
@@ -94,23 +96,23 @@ function Transform(spec={}, entity=null) {
     tryApplyParent('invertDirection', point, output)
     
     output.rotate(-rotation)
-    output.divide(scale)
+    output.divideComponents(scale)
     
     return output
   }
   
   function transformScalar(scalar) {
     tryApplyParent('transformScalar', scalar)
-    return scalar*scale
+    return scalar*(scale.x+scale.y)/2
   }
   
   function invertScalar(scalar) {
     tryApplyParent('invertScalar', scalar)
-    return scalar/scale
+    return scalar/((scale.x+scale.y)/2)
   }
   
   function transformCanvas(ctx) {
-    ctx.scale(1/scale, 1/scale)
+    ctx.scale(1/scale.x, 1/scale.y)
     ctx.rotate(-rotation)
     ctx.translate(-position.x, -position.y)
     
@@ -122,7 +124,7 @@ function Transform(spec={}, entity=null) {
     
     ctx.translate(position.x, position.y)
     ctx.rotate(rotation)
-    ctx.scale(scale, scale)
+    ctx.scale(scale.x, scale.y)
   }
   
   return {
@@ -142,8 +144,7 @@ function Transform(spec={}, entity=null) {
     
     get position() {return position},
     set position(v) {
-      position.x = v[0]
-      position.y = v[1]
+      position.set(v)
     },
     
     get x() {return position.x},
@@ -153,7 +154,14 @@ function Transform(spec={}, entity=null) {
     set y(v) {position.y = v},
     
     get scale() {return scale},
-    set scale(v) {scale = v},
+    set scale(v) {
+      if (_.isNumber(v)) {
+        scale.x = v
+        scale.y = v
+      }
+      else
+        scale.set(v)
+    },
     
     get rotation() {return rotation},
     set rotation(v) {setRotation(v)},

@@ -108,6 +108,24 @@ function Vector2() {
     return output
   }
   
+  function multiplyComponents(vector, output) {
+    if (!output) output = this
+    
+    output.x = x*vector.x
+    output.y = y*vector.y
+    
+    return output
+  }
+  
+  function divideComponents(vector, output) {
+    if (!output) output = this
+    
+    output.x = x/vector.x
+    output.y = y/vector.y
+    
+    return output
+  }
+  
   function negate(output) {
     if (!output) output = this
     
@@ -239,6 +257,8 @@ function Vector2() {
     subtract,
     multiply,
     divide,
+    multiplyComponents,
+    divideComponents,
     negate,
     
     min,
