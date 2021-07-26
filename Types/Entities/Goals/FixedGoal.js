@@ -1,6 +1,7 @@
 function FixedGoal(spec) {
   const {
     self,
+    base,
     screen,
     camera,
     transform,
@@ -29,6 +30,7 @@ function FixedGoal(spec) {
     self.setAlphaByFlashFade()
     
     camera.drawThrough(ctx, drawLocal, transform)
+    base.draw()
     
     // Reset alpha
     ctx.globalAlpha = 1

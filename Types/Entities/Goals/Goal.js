@@ -6,7 +6,6 @@ function Goal(spec) {
     ctx,
     globalScope,
     log,
-    type = 'fixed',
     timer = 0,
     order = null,
     size = 1,
@@ -17,6 +16,7 @@ function Goal(spec) {
   } = Entity(spec, 'Goal')
 
   const transform = Transform(spec)
+  const center = Vector2()
 
   let triggered = false
   let available = false
@@ -148,14 +148,14 @@ function Goal(spec) {
   function drawLocal() {
     if (order) {
       ctx.save()
-      ctx.fillStyle = strokeStyle
+      ctx.fillStyle = fillStyle
       ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
+      ctx.textBaseline = 'hanging'
       ctx.font = '1px Roboto Mono'
-      ctx.scale(0.7, -0.7)
+      ctx.scale(0.3, -0.3)
 
       let center = self.center
-      ctx.fillText(order, center.x, center.y + 0.25)
+      ctx.fillText(order, center.x+0.6, center.y + 0.3)
       ctx.restore()
     }
   }
@@ -177,14 +177,6 @@ function Goal(spec) {
     triggeringCollector = null
 
     self.refresh()
-  }
-
-  function startRunning() {
-
-  }
-
-  function stopRunning() {
-    self.reset()
   }
 
   function refreshColors() {
@@ -243,9 +235,6 @@ function Goal(spec) {
     refresh,
     refreshColors,
 
-    startRunning,
-    stopRunning,
-
     refreshTriggered,
     checkComplete,
 
@@ -254,7 +243,7 @@ function Goal(spec) {
 
     setAlphaByFlashFade,
 
-    get center() { return transform.position },
+    get center() { return center },
 
     get completed() { return completed },
     get available() { return available },

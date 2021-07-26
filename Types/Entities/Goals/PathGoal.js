@@ -1,13 +1,12 @@
 function PathGoal(spec) {
   const {
     self,
+    base,
     screen,
     camera,
     transform,
     ctx,
   } = Goal(spec, 'PathGoal')
-  
-  const base = _.mix(self)
   
   let {
     size = 1,

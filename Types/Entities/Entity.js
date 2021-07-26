@@ -165,7 +165,7 @@ function Entity(spec, defaultName = 'Entity') {
     start: [start],
 
     tick: [tick],
-    draw: [draw],
+    draw: draw,
     
     destroy: destroy,
     

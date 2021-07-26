@@ -88,6 +88,8 @@ function Level(spec) {
   }
 
   function goalCompleted(goal) {
+    log('Goal completed!')
+
     if (!completed) {
       
       refreshLowestOrder()
@@ -121,6 +123,8 @@ function Level(spec) {
         lowestOrder = goal.order
       }
     }
+
+    console.log('Refreshing lowest order: ', lowestOrder)
     
     _.invokeEach(goals, 'refresh')
   }
@@ -129,6 +133,11 @@ function Level(spec) {
     refreshLowestOrder()
   }
 
+  function stopRunning() {
+    _.invokeEach(goals, 'reset')
+    completed = false
+    reset()
+  }
   
   return self.extend({
     start,
@@ -137,6 +146,8 @@ function Level(spec) {
     draw,
     
     reset,
+
+    stopRunning,
 
     get completed() {return completed},
   })

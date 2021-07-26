@@ -51,6 +51,7 @@ function FreeGoal(spec) {
     self.setAlphaByFlashFade()
     
     camera.drawThrough(ctx, drawLocal, transform)
+    base.draw()
     
     // Reset alpha
     ctx.globalAlpha = 1
