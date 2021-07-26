@@ -26,7 +26,7 @@ function Data(spec) {
 
     const yaml = jsyaml.dump(obj)
     const compressed = LZString.compressToEncodedURIComponent(yaml)
-    const url = window.location.origin+'?'+compressed
+    const url = location.origin+location.pathname+'?'+compressed
 
     window.history.replaceState({}, '', url)
   }
