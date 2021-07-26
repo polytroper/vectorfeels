@@ -154,7 +154,7 @@ function Goal(spec) {
       ctx.font = '1px Roboto Mono'
       ctx.scale(0.7, -0.7)
 
-      let center = self.shape.center
+      let center = self.center
       ctx.fillText(order, center.x, center.y + 0.25)
       ctx.restore()
     }
@@ -253,6 +253,8 @@ function Goal(spec) {
     fail,
 
     setAlphaByFlashFade,
+
+    get center() { return transform.position },
 
     get completed() { return completed },
     get available() { return available },
