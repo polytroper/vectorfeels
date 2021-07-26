@@ -5,7 +5,7 @@ function PathGoal(spec) {
     camera,
     transform,
     ctx,
-  } = Goal(spec, 'Path Goal')
+  } = Goal(spec, 'PathGoal')
   
   const base = _.mix(self)
   

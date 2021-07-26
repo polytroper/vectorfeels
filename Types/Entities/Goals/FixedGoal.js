@@ -5,11 +5,8 @@ function FixedGoal(spec) {
     camera,
     transform,
     ctx,
-  } = Goal(spec, 'Fixed Goal')
-  
-  let {
     size = 0.1,
-  } = spec
+  } = Goal(spec, 'FixedGoal')
   
   const shape = Rect({
     transform,
@@ -23,7 +20,7 @@ function FixedGoal(spec) {
     ctx.lineWidth = self.strokeWidth
 
     ctx.beginPath()
-    ctx.arc(0, 0, size, 0, TAU)
+    ctx.rect(-size, -size, size*2, size*2)
     ctx.fill()
   }
   

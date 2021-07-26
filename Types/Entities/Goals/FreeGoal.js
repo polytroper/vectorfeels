@@ -1,14 +1,15 @@
-function Collector(spec = {}) {
+function FreeGoal(spec) {
   const {
     self,
+    base,
     screen,
     camera,
+    transform,
     field,
     globalScope,
-    size = 1
-  } = Entity(spec, 'Collector')
-  
-  const transform = Transform(spec, self)
+    ctx,
+    size = 0.1,
+  } = Goal(spec, 'FreeGoal')
   
   const floater = Floater({
     globalScope,
@@ -20,8 +21,6 @@ function Collector(spec = {}) {
 
   const origin = Vector2(transform.position)
   
-  const ctx = screen.ctx
-  
   // const trail = Trail({
   //   parent: self,
   // })
@@ -30,27 +29,31 @@ function Collector(spec = {}) {
 
   function start() {
     // trail.reset()
+    console.log(base)
   }
-  
+
   function tick() {
     floater.tick()
   }
-
+  
   function drawLocal() {
-    ctx.strokeStyle = '#FFF'
-    ctx.fillStyle = '#222'
+    ctx.fillStyle = self.fillStyle
     
-    ctx.lineWidth = 0.1
-    
+    ctx.lineWidth = self.strokeWidth
+
     ctx.beginPath()
-    ctx.arc(0, 0, size/2, 0, TAU)
-    // ctx.fill()
-    ctx.stroke()
+    ctx.arc(0, 0, size, 0, TAU)
+    ctx.fill()
   }
   
   function draw() {
+    // Set alpha to fade with flash if completed
+    self.setAlphaByFlashFade()
+    
     camera.drawThrough(ctx, drawLocal, transform)
-    // floater.draw(ctx)
+    
+    // Reset alpha
+    ctx.globalAlpha = 1
   }
   
   function startRunning() {
@@ -62,6 +65,8 @@ function Collector(spec = {}) {
   }
   
   function reset() {
+    base.reset()
+
     transform.position.set(origin)
     
     let angle = floater.upright.angle-PI/2
@@ -71,17 +76,13 @@ function Collector(spec = {}) {
   }
   
   return self.extend({
-    transform,
-    
     start,
     tick,
     draw,
-    
-    startRunning,
-    stopRunning,
-    
+
     reset,
 
-    size,
+    startRunning,
+    stopRunning,
   })
 }

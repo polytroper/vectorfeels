@@ -31,6 +31,11 @@ function Level(spec) {
         ...goalInclusions,
       }
     },
+    FreeGoal: {
+      inclusions: {
+        ...goalInclusions,
+      }
+    },
     PathGoal: {
       inclusions: {
         ...goalInclusions,
@@ -51,6 +56,7 @@ function Level(spec) {
   const goals = [
     ...elements.FixedGoal.instances,
     ...elements.PathGoal.instances,
+    ...elements.FreeGoal.instances,
   ]
 
   function start() {
