@@ -10,7 +10,7 @@ function Transform(spec={}, entity=null) {
     _.isNumber(spec.scale) ?
       Vector2(spec.scale, spec.scale) :
       Vector2(spec.scale) :
-    Vector2(spec.x || 1, spec.y || 1)
+    Vector2(1, 1)
     
   const position = spec.position ? 
     Vector2(spec.position) :
@@ -103,12 +103,12 @@ function Transform(spec={}, entity=null) {
   
   function transformScalar(scalar) {
     tryApplyParent('transformScalar', scalar)
-    return scalar*(scale.x+scale.y)/2
+    return scalar*(Math.abs(scale.x)+Math.abs(scale.y))/2
   }
   
   function invertScalar(scalar) {
     tryApplyParent('invertScalar', scalar)
-    return scalar/((scale.x+scale.y)/2)
+    return scalar/((Math.abs(scale.x)+Math.abs(scale.y))/2)
   }
   
   function transformCanvas(ctx) {

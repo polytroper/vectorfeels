@@ -178,6 +178,15 @@ function Vector2() {
     }
     return magnitude
   }
+
+  function getAngle() {
+    const m = getMagnitude()
+
+    const mx = x/m
+    const my = y/m
+
+    return Math.atan2(my, mx)
+  }
   
   function dot(other) {
     return x*other.x+y*other.y
@@ -291,6 +300,7 @@ function Vector2() {
     
     get magnitude() {return getMagnitude()},
     get normalized() {return normalize()},
+    get angle() {return getAngle()},
   }
 }
 

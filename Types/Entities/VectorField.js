@@ -1,27 +1,25 @@
 function VectorField(spec) {
   const {
     self,
+    log,
     
     ui,
-    ctx,
     screen,
     camera,
-
-    useAcceleration = false,
-  } = Entity(spec, 'VectorField')
-  
-  const {
     globalScope,
-  } = spec
+  } = Entity(spec, 'VectorField')
+
+  const ctx = screen.ctx
+  let expression = 'p*i'
   
-  const scope = {
+  const scope = _.mixIn({
     p: math.complex()
-  }
+  }, globalScope)
   
   const sampler = Sampler({
     scope
   })
-  sampler.setExpression('-y+x*i')
+  sampler.setExpression(expression)
   
   const layer = document.createElement('canvas')
   const layerCtx = layer.getContext('2d')
@@ -31,8 +29,10 @@ function VectorField(spec) {
   const particleTimeMin = 2
   const particleTimeMax = 4
   
+  const particleSlope = Vector2()
   const particleDelta = Vector2()
   
+  const samplePosition = Vector2()
   const positionLocal = Vector2()
   
   const randomizeParticle = (particle) => {
@@ -78,32 +78,53 @@ function VectorField(spec) {
       
       particle.timer -= globalScope.dt
       
-      scope.p.re = particle.position.x
-      scope.p.im = particle.position.y
-      
-      scope.x = particle.position.x
-      scope.y = particle.position.y
-      
-      let sample = sampler.sample()
-      
-      // if (i == 0)
-        // console.log(sample.toString())
-      
-      particle.sample.x = math.re(sample)
-      particle.sample.y = math.im(sample)
-
-      if (useAcceleration) {
-        particle.velocity.x += math.re(sample)*globalScope.dt
-        particle.velocity.y += math.im(sample)*globalScope.dt
-
-        particle.velocity.multiply(globalScope.dt, particleDelta)
-        particle.position.add(particleDelta)
-      }
-      else {
-        particle.sample.multiply(globalScope.dt, particleDelta)
-        particle.position.add(particleDelta)
-      }
+      integrateEuler(particle)
     }
+  }
+
+  function integrateEuler(particle) {
+    sampleAt(particle.position, particle.sample)
+    particle.sample.multiply(globalScope.dt, particleDelta)
+    particle.position.add(particleDelta)
+  }
+
+  function integrateRK4(particle) {
+    samplePosition.set(particle.position)
+    particle.velocity.set()
+
+    // First order
+    sampleAt(samplePosition, particleSlope)
+    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particle.velocity.add(particleSlope)
+
+    particle.position.add(particleDelta, samplePosition)
+
+    // Second order
+    sampleAt(samplePosition, particleSlope)
+    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particle.velocity.add(particleSlope.multiply(2))
+
+    particle.position.add(particleDelta, samplePosition)
+
+    // Third order
+    sampleAt(samplePosition, particleSlope)
+    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particle.velocity.add(particleSlope.multiply(2))
+
+    particle.position.add(particleDelta, samplePosition)
+
+    // Fourth order
+    sampleAt(samplePosition, particleSlope)
+    particle.velocity.add(particleSlope)
+
+    // Divide to get weighted average of slopes
+    particle.velocity.divide(6)
+
+    // Compute position delta
+    particle.velocity.multiply(globalScope.dt, particleDelta)
+    
+    // Integrate delta
+    particle.position.add(particleDelta)
   }
   
   function drawLocal(context) {
@@ -117,8 +138,6 @@ function VectorField(spec) {
       context.moveTo(particle.lastPosition.x, particle.lastPosition.y)
       context.lineTo(particle.position.x, particle.position.y)
       context.stroke()
-      
-      // if (i == 0) console.log(particle.timer.toString())
       
       // Now that the line has been drawn, align the last drawn position with the new drawn position
       particle.lastPosition.set(particle.position)
@@ -139,17 +158,51 @@ function VectorField(spec) {
     layer.height = screen.height
   }
   
-  function setGraphExpression(text) {
+  function setExpression(text) {
+    log('Setting VectorField expression: ', text)
+    expression = text
     sampler.setExpression(text)
   }
-  
-  return self.mix({
-    start,
+
+  function sampleAt(point, output) {
+    scope.p.re = point.x
+    scope.p.im = point.y
     
+    scope.x = point.x
+    scope.y = point.y
+
+    if (!output) output = point
+
+    let sample = sampler.sample()
+
+    if (sample.__proto__.type == 'ResultSet') {
+      sample = _.last(sample.valueOf())
+    }
+
+    if (_.isUndefined(sample) || _.isNull(sample)) {
+      sample = 0
+    }
+    
+    if (sample.units || sample.signatures) {
+      sample = 0
+    }
+
+    output.x = math.re(sample)
+    output.y = math.im(sample)
+
+    return output
+  }
+  
+  return self.extend({
+    start,   
     tick,
     draw,
-    
     resize,
-    setGraphExpression,
+
+    sampleAt,
+    setExpression,
+
+    get expression() {return expression},
+    get expressionLatex() {return sampler.expressionLatex},
   })
 }

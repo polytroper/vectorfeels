@@ -152,6 +152,26 @@ math.smooth = function(t) {
   return 1-(Math.cos(t)+1)/2
 }
 
+math.toTex = function(text) {
+  if (!text)
+    return ''
+    
+  let latex = math.parse(text).toTex({
+    parenthesis: 'auto',
+    handler: (node, options) => {
+    }
+  })
+
+  if (latex == 'undefined')
+    return ''
+
+  latex = latex.replaceAll(';\\;\\;', ';\\ ')
+  latex = latex.replaceAll(':=', '=')
+  latex = latex.split('~').join('')
+
+  return latex
+}
+
 math.pinf = Number.POSITIVE_INFINITY
 math.ninf = Number.NEGATIVE_INFINITY
 

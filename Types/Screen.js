@@ -42,7 +42,10 @@ function Screen(spec = {}) {
     
     transform.x = width/2
     transform.y = height/2
-    transform.scale = math.min(width, height)/2
+
+    const scale = math.min(width, height)/2
+    transform.scale.x = scale
+    transform.scale.y = -scale
     
     vertical = height > width
     aspect = width/height
@@ -58,7 +61,7 @@ function Screen(spec = {}) {
     if (!output) output = point
     
     transform.invertPoint(point, output)
-    output.y *= -1
+    // output.y *= -1
     
     return output
   }
@@ -68,7 +71,7 @@ function Screen(spec = {}) {
     
     output.set(point)
     
-    output.y *= -1
+    // output.y *= -1
     transform.transformPoint(output)
     
     return output
@@ -78,7 +81,7 @@ function Screen(spec = {}) {
     if (!output) output = direction
     
     transform.invertDirection(direction, output)
-    output.y *= -1
+    // output.y *= -1
     
     return output
   }
@@ -88,7 +91,7 @@ function Screen(spec = {}) {
     
     output.set(direction)
     
-    output.y *= -1
+    // output.y *= -1
     transform.transformDirection(output)
     
     return output

@@ -7,6 +7,7 @@ function Camera(spec) {
   } = Entity(spec, 'Camera')
   
   const transform = Transform(spec)
+  const ctx = screen.ctx
   
   let {
     fov = 5,
@@ -143,25 +144,25 @@ function Camera(spec) {
   
   function worldToScreenCanvas(ctx, localTransform) {
     screen.transform.invertCanvas(ctx)
-    ctx.scale(1, -1)
+    // ctx.scale(1, -1)
     transform.transformCanvas(ctx)
     
     if (localTransform) {
       localTransform.invertCanvas(ctx)
     }
     
-    ctx.scale(1, -1)
+    // ctx.scale(1, -1)
   }
   
   function screenToWorldCanvas(ctx, localTransform) {
-    ctx.scale(1, -1)
+    // ctx.scale(1, -1)
     
     if (localTransform) {
       localTransform.transformCanvas(ctx)
     }
     
     transform.invertCanvas(ctx)
-    ctx.scale(1, -1)
+    // ctx.scale(1, -1)
     screen.transform.transformCanvas(ctx)
   }
   
@@ -228,8 +229,36 @@ function Camera(spec) {
   
   function draw() {
     if (self.debug) {
+      ctx.fillStyle = 'red'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.font = '10px Roboto Mono'
+
+      const o = 20
+
+      ctx.beginPath()
+      ctx.arc(0, 0, o/4, 0, TAU)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(screen.width, 0, o/4, 0, TAU)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(screen.width, screen.height, o/4, 0, TAU)
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(0, screen.height, o/4, 0, TAU)
+      ctx.fill()
+
+      ctx.fillText('0,0px', o, o)
+      ctx.fillText(`${screen.width},0px`, screen.width-o, o)
+      ctx.fillText(`0,${screen.height}px`, o, screen.height-o)
+      ctx.fillText(`${screen.width},${screen.height}px`, screen.width-o, screen.height-o)
+
       leftScreen.set(0, 0)
-      rightScreen.set(0, screen.width)
+      rightScreen.set(screen.width, 0)
       
       topScreen.set(0, screen.height)
       bottomScreen.set(0, 0)
@@ -255,7 +284,7 @@ function Camera(spec) {
     computeCorners()
   }
   
-  return self.mix({
+  return self.extend({
     transform,
     screen,
     

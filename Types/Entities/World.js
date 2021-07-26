@@ -1,53 +1,103 @@
 function World(spec) {
-  const self = Entity(spec, 'World')
-  
   const {
+    self,
     ui,
     screen,
+    engine,
     requestDraw,
-    tickDelta,
-  } = spec
+    log,
+  } = Entity(spec, 'World')
 
+  let editing = false
   let running = false
   let runTime = 0
+
+  let data = Data()
+  let level
   
   const globalScope = {
     get t() {return runTime},
-    dt: tickDelta,
+    get dt() {return engine.tickDelta},
+
+    get pi() {return PI},
+    get tau() {return TAU},
     
     get running() {return running},
   }
+
+  self.essentials.globalScope = globalScope
+  self.essentials.ctx = screen.ctx
   
   const camera = Camera({
-    screen,
-    globalScope,
     parent: self,
+    // debug: true,
   })
+
+  self.essentials.camera = camera
   
   const field = VectorField({
-    screen,
-    globalScope,
-    camera,
     parent: self,
   })
   
   const axes = Axes({
-    screen,
-    camera,
     parent: self,
   })
   
+  self.essentials.field = field
+
   function start() {
-    ui.setExpression('\\sin \\left(y\\right)+\\sin \\left(x\\right)i')
+    loadData(data)
+
+    ui.setLevelText(data.levelText)
   }
   
   function tick() {
-    if (running) runTime += tickDelta
+    if (running) runTime += engine.tickDelta
+
+    let runTimeString = (Math.round(runTime*10)/10).toString()
+    
+    if (running && !_.includes(runTimeString, '.'))
+      runTimeString += '.0'
+    
+    ui.runButtonString.innerHTML = 'T='+runTimeString
   }
   
   function draw() {
     screen.ctx.fillStyle = '#000'
     screen.ctx.fillRect(0, 0, screen.width, screen.height)
+  }
+
+  function loadLevelText(str) {
+    console.log(`Loading level text:`, str)
+    let d = Data({
+      expression: field.expression,
+      levelText: str,
+    })
+
+    loadData(d)
+  }
+
+  function loadData(d) {
+    let oldData = data
+    data = d
+  
+    log('Loading level data:', data)
+
+    if (!level) {
+      field.setExpression(data.expression)
+      ui.setExpression(data.expression)
+    }
+
+    if (level) {
+      level.destroy()
+    }
+
+    level = Level({
+      parent: self,
+      levelCompleted,
+      data: data.level,
+      debug: true,
+    })
   }
   
   function startRunning() {
@@ -68,10 +118,10 @@ function World(spec) {
     ui.mathField.blur()
     ui.expressionEnvelope.setAttribute('disabled', false)
     
-    if (!navigating) {
-      // HACK: Timed to avoid bug in Safari (at least) that causes whole page to be permanently offset when off-screen text input is focused
-      setTimeout(() => ui.expressionText.focus(), 250)
-    }
+    setTimeout(() => {
+      if (!editing)
+        ui.mathField.focus()
+    }, 250)
     
     self.sendEvent('stopRunning', [])
     
@@ -82,12 +132,109 @@ function World(spec) {
     if (running) stopRunning()
     else startRunning()
   }
+
+  function startEditing() {
+    editing = true
+    ui.editor.setAttribute('hide', false)
+    ui.expressionEnvelope.setAttribute('disabled', true)
+    ui.levelText.focus()
+  }
+
+  function stopEditing() {
+    editing = false
+    ui.mathField.focus()
+    ui.editor.setAttribute('hide', true)
+    ui.expressionEnvelope.setAttribute('disabled', false)
+  }
   
-  return self.mix({
+  function toggleEditing() {
+    if (editing) stopEditing()
+    else startEditing()
+  }
+
+  function restart() {
+    const e = data.level.expression
+
+    ui.setExpression(e)
+    field.setExpression(e)
+
+    writeData()
+  }
+
+  function levelCompleted() {
+
+  }
+
+  function writeData() {
+    const data = Data({
+      expression: field.expression,
+      levelText: ui.levelText.value
+    })
+
+    data.write()
+  }
+  
+  // HTML Events
+
+  function onChangeExpression(text, latex) {
+    field.setExpression(text)
+    writeData()
+  }
+
+  function onChangeLevelText(text) {
+    console.log('Level text changed to:', text)
+    loadLevelText(text)
+    writeData()
+  }
+
+  function onClickRunButton() {
+    toggleRunning()
+  }
+
+  ui.runButton.addEventListener('click', onClickRunButton)
+
+  function onClickRestartButton() {
+    restart()
+  }
+
+  ui.restartButton.addEventListener('click', onClickRestartButton)
+
+  function onKeyUp(event) {
+    if (event.keyCode === 13) {
+      if (event.shiftKey) {
+        if (running)
+          stopRunning()
+          
+        toggleEditing()
+      }
+      else if (editing) {
+        
+      }
+      else
+        toggleRunning()
+    }
+  }
+
+  window.addEventListener("keyup", onKeyUp)
+
+  function onKeyDown(event) {
+    if (event.keyCode === 13) {
+      if (event.shiftKey) {
+        event.preventDefault()
+      }
+    }
+  }
+
+  window.addEventListener("keydown", onKeyDown)
+  
+  return self.extend({
     start,
     tick,
     draw,
     
     toggleRunning,
+
+    onChangeExpression,
+    onChangeLevelText,
   })
 }

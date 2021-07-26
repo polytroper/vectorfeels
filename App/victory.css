@@ -1,0 +1,23 @@
+.victory {
+  position: absolute;
+  
+  bottom: 20px;
+  
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.victory[hide=true] {
+  bottom: -80px;
+}
+
+#victory-label {
+  flex-grow: 1;
+}
+
+#next-button:not(:hover) {
+  background: #4f6;
+}
+
+#victory-stop-button:not(:hover) {
+  background: #f46;
+}

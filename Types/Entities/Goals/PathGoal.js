@@ -226,7 +226,7 @@ function PathGoal(spec) {
     pathPositionWorld.set(pathStartWorld)
   }
   
-  return self.mix({
+  return self.extend({
     transform,
     
     tick,

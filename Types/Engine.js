@@ -14,6 +14,13 @@ function Engine(spec) {
   const tickDelta = 1/ticksPerSecond
   let time = 0
 
+  _.mixIn(self, {
+    get time() {return time},
+    get tickDelta() {return tickDelta},
+
+    requestDraw,
+  })
+
   const screen = Screen({
     canvas
   })
@@ -25,11 +32,14 @@ function Engine(spec) {
   })
   
   const world = World({
-    ui,
-    screen,
-    tickDelta,
-    engine: self,
-    getTime: () => time,
+    essentials: {
+      ui,
+      screen,
+      tickDelta,
+      engine: self,
+      requestDraw,
+    },
+    debug: true,
   })
 
   _.mixIn(self, {
@@ -51,9 +61,7 @@ function Engine(spec) {
     if (window.innerHeight != screen.height || window.innerWidth != screen.width)
       resize()
       
-    world.sendLifecycleEvent('awake')
-    world.sendLifecycleEvent('start')
-    
+    world.sendEvent('start')
     world.sendEvent('tick')
     
     time += tickDelta

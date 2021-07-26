@@ -10,6 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
     
     <link href='App/style.css' rel='stylesheet' type='text/css'/>
+    <link href='App/editor.css' rel='stylesheet' type='text/css'/>
+    <link href='App/controls.css' rel='stylesheet' type='text/css'/>
+    <link href='App/victory.css' rel='stylesheet' type='text/css'/>
     
   </head>
   
@@ -17,6 +20,10 @@
     <canvas id='canvas'></canvas>
     
     <div class='bar floating controls' id='controls-bar'>
+      <div class='button' id='restart-button'>
+        <div class='string'>↺</div>
+      </div>
+
       <div class='envelope' id='expression-envelope' disabled=false>
         <!-- <div class='label' id='variable-label'>
           <div class='string'>a=</div>
@@ -26,9 +33,19 @@
         
         <div id='math-field-static'></div>
       </div>
+      
+      <div class='button' id='run-button' hide=false>
+        <div class='string'>GO</div>
+      </div>
+    </div>
+
+    <div id='editor' hide='true'>
+      <textarea id='level-text'></textarea>
     </div>
   
     <!--Load Libraries-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.3/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -46,18 +63,30 @@
     <script src="Types/Ui.js"></script>
     <script src="Types/Transform.js"></script>
     <script src="Types/Sampler.js"></script>
+    <script src="Types/Floater.js"></script>
+    <script src="Types/Data.js"></script>
     
     <!--Load Structs-->
+    <script src="Types/Structs/Test.js"></script>
     <script src="Types/Structs/Color.js"></script>
     <script src="Types/Structs/Vector2.js"></script>
+
+    <script src="Types/Structs/Shape.js"></script>
+    <script src="Types/Structs/Rect.js"></script>
     
     <!--Load Entities-->
     <script src="Types/Entities/Entity.js"></script>
     <script src="Types/Entities/World.js"></script>
     <script src="Types/Entities/Camera.js"></script>
     <script src="Types/Entities/Axes.js"></script>
+    <script src="Types/Entities/Level.js"></script>
     <script src="Types/Entities/VectorField.js"></script>
-    
+    <script src="Types/Entities/Collector.js"></script>
+    <script src="Types/Entities/Trail.js"></script>
+
+    <script src="Types/Entities/Goals/Goal.js"></script>
+    <script src="Types/Entities/Goals/FixedGoal.js"></script>
+    <script src="Types/Entities/Goals/PathGoal.js"></script>
     
     <!--Start the app-->
     <script src="App/app.js"></script>

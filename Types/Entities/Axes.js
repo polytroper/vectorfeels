@@ -2,12 +2,12 @@ function Axes(spec) {
   const {
     self,
     screen,
+    camera,
   } = Entity(spec, 'Axes')
   
   const transform = Transform()
   
   let {
-    camera,
   } = spec
   
   const ctx = screen.ctx
@@ -36,7 +36,7 @@ function Axes(spec) {
     ctx.stroke()
   }
   
-  return self.mix({
+  return self.extend({
     transform,
     
     tick,

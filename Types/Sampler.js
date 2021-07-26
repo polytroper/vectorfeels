@@ -65,7 +65,7 @@ function Sampler(spec = {}) {
         scope[arguments[i]] = arguments[i+1]
       }
     }
-    
+
     return evaluate(scope)
   }
   
@@ -143,6 +143,8 @@ function Sampler(spec = {}) {
     
     get expression() {return expression},
     set expression(v) {setExpression(v)},
+
+    get expressionLatex() {return evaluator.toTex()},
     
     get valid() {return valid},
   }

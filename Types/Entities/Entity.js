@@ -3,127 +3,112 @@ function Entity(spec, defaultName = 'Entity') {
   
   let {
     name = defaultName,
+    essentials = {},
     active = true,
     parent = null,
-    assets = null,
-    camera = null,
-    screen = null,
-    tickDelta = null,
-    getTime = null,
-    ui = null,
-    drawOrder = 0,
+    sortOrder = 0,
     debugSelf = false,
-    debugTree = false,
   } = spec
   
-  // Because I constantly forget to use debugSelf instead of simply 'debug'.
-  debugSelf = debugSelf || spec.debug
+  // Alias 'debug' to 'debugSelf'
+  debugSelf = debugSelf || spec.debug || false
+
+  // Use explicitly-passed value if defined, otherwise defer to parent
+  const debugTree = spec.debugTree ||
+    parent ? parent.debugTree : false
   
-  // Inherit the fundamentals TODO: Make fundamentals a key/value abstraction
   if (parent) {
     parent.addChild(self)
-    
-    if (!camera)
-      camera = parent.camera
-    if (!assets)
-      assets = parent.assets
-    if (!screen)
-      screen = parent.screen
-    if (!tickDelta)
-      tickDelta = parent.tickDelta
-    if (!getTime)
-      getTime = parent.getTime
-    if (!ui)
-      ui = parent.ui
-    if (!debugTree)
-      debugTree = parent.debugTree
+
+    // Inherit parent's essentials (the items designated for inheritance by every entity below this one on the hierarchy)
+    essentials = _.mixIn({}, parent.essentials, essentials)
   }
   
-  const ctx = screen ? screen.ctx : null
-  
-  // Mix in the fundamentals
+  // Mix the essentials into self
   _.mixIn(self, {
     self,
-    camera,
-    screen,
-    assets,
-    ctx,
-    ui,
-    tickDelta,
-    get time() {return getTime()},
+    base: self,
+    log,
+    ...essentials
   })
   
   const children = []
+
+  let started = false
+  let destroyed = false
   
-  const lifecycle = {
-    awake: {
-      entity: [awake],
-      component: [],
-    },
-    start: {
-      entity: [start],
-      component: [],
-    },
-    destroy: {
-      entity: [destroy],
-      component: [],
-    },
-  }
-  
-  // Called when the entity is fully initialized
-  function awake() {
-    // console.log(`Awakening ${name}`)
-  }
-  
-  // Called when the entity is fully initialized
+  // Start is called just before the entity's first tick
   function start() {
-    // console.log(`Starting ${name}`)
+    log(`Starting ${self.lineage}`)
+    started = true
+
+    // Unset everything that should be inaccessible after initialization 
+    _.unset(self, 'start')
+    _.unset(self, 'extend')
   }
   
-  // Called every frame at a fixed timestep
+  // Tick is called every frame at a fixed timestep
   function tick() {
-    // console.log(`Ticking ${name}`)
+    // log(`Ticking ${name}`)
   }
   
-  // Called every time the canvas is redrawn
+  // Draw is called every time the canvas is redrawn
   function draw() {
-    // console.log(`Drawing ${name}`)
+    // log(`Drawing ${name}`)
   }
   
-  // Called when the object is to be fully removed from memory
+  // Destroy is called when the object is to be fully removed from memory
   function destroy() {
+    log(`Destroying ${self.lineage}`)
+    destroyed = true
+
+    // Unset everything that should be inaccessible after destruction 
+    _.unset(self, 'destroy')
+
     if (parent)
       parent.removeChild(self)
   }
-  
-  function sendLifecycleEvent(path) {
-    const e = lifecycle[path].entity
-    const c = lifecycle[path].component
-    
-    while (e.length > 0) e.shift()()
-    while (c.length > 0) c.shift()()
-    
-    _.invokeEach(children, 'sendLifecycleEvent', arguments)
+
+  function log() {
+    if (debugSelf || debugTree || DEBUG)
+      console.log(...arguments)
   }
   
   function sendEvent(path, args = []) {
+    // Inactive entities do not process events
     if (!active) return
     
+    // Must use _.get so that 'multi.part.paths' work.
     let f = _.get(self, path)
     if (_.isFunction(f))
       f.apply(self, args)
+    else if (_.isArray(f)) 
+      _.callEach(f, args)
     
     _.invokeEach(children, 'sendEvent', arguments)
   }
   
-  function mix(other) {
-    if (_.isFunction(other.awake))
-      lifecycle.awake.entity.push(other.awake)
+  function extend(extension) {
+    // Push arrayed events into their arrays
+    _.each(self, (array, key) => {
+      const event = extension[key]
+
+      // Is this an event array?
+      if (
+        _.isArray(array) &&
+        _.every(array, _.isFunction) &&
+        _.isFunction(event)
+      ) {
+        // Great, add the new event to the array and remove it from our extension object.
+        array.push(event)
+        _.unset(extension, key)
+      }
+    })
+
+    // Copy all of self into a base object so any extending objects may access overridden methods/variables
+    self.base = _.mixIn({}, self)
       
-    if (_.isFunction(other.start))
-      lifecycle.start.entity.push(other.start)
-      
-    return _.mixIn(self, other)
+    return _.mixIn(self, extension)
   }
   
   function hasChild(child) {
@@ -141,8 +126,8 @@ function Entity(spec, defaultName = 'Entity') {
   }
   
   function compareChildren(a, b) {
-    a = _.isNumber(a.drawOrder) ? a.drawOrder : 0
-    b = _.isNumber(b.drawOrder) ? b.drawOrder : 0
+    a = _.isNumber(a.sortOrder) ? a.sortOrder : 0
+    b = _.isNumber(b.sortOrder) ? b.sortOrder : 0
     return a-b
   }
   
@@ -172,23 +157,23 @@ function Entity(spec, defaultName = 'Entity') {
     return name
   }
   
-  return _.mixIn(self, {
-    awake,
-    start,
+  // Mix all our new properties into self
+  _.mixIn(self, {
+    start: [start],
 
-    tick,
-    draw,
+    tick: [tick],
+    draw: [draw],
     
-    destroy,
+    destroy: destroy,
     
     get name() {return name},
     set name(v) {name = v},
+
+    essentials,
+    children,
     
-    lifecycle,
-    
-    mix,
+    extend,
     sendEvent,
-    sendLifecycleEvent,
     
     hasChild,
     addChild,
@@ -199,20 +184,25 @@ function Entity(spec, defaultName = 'Entity') {
     
     get lineage() {return getLineage()},
     
-    children,
-    sortChildren,
-    
-    toString,
-    
     get parent() {return parent},
     get root() {return parent ? parent.root : self},
     
     get active() {return active},
     set active(v) {setActive(v)},
+
+    get started() {return started},
+    get destroyed() {return destroyed},
     
-    get drawOrder() {return drawOrder},
-    set drawOrder(v) {drawOrder = v},
+    get sortOrder() {return sortOrder},
+    set sortOrder(v) {sortOrder = v},
     
     get debug() {return debugSelf || debugTree},
+    get debugSelf() {return debugSelf},
+    get debugTree() {return debugTree || parent ? parent.debugTree : false},
+
+    toString,
   })
+
+  // Return an object containing all of self, plus anything included in the spec. This allows Entities to destructure spec and self in a single statement.
+  return _.mixIn({}, spec, self)
 }
