@@ -34,8 +34,8 @@ function Screen(spec = {}) {
   const maxFramePoint = Vector2()
   
   function resize() {
-    width = element.innerWidth || element.width
-    height = element.innerHeight || element.height
+    width = element.innerWidth || element.width || 512
+    height = element.innerHeight || element.height || 512
     
     canvas.width = width
     canvas.height = height
@@ -51,10 +51,13 @@ function Screen(spec = {}) {
     aspect = width/height
     
     minFramePoint[0] = vertical ? -1 : -aspect
-    minFramePoint[1] = vertical ? 1/aspect : -1
+    minFramePoint[1] = vertical ? -1/aspect : -1
     
     maxFramePoint[0] = vertical ? 1 : aspect
     maxFramePoint[1] = vertical ? 1/aspect : 1
+
+    console.log('minFramePoint: ', minFramePoint.toString())
+    console.log('maxFramePoint: ', maxFramePoint.toString())
   }
   
   function screenToFrame(point, output) {
