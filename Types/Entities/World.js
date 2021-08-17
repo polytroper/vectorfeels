@@ -4,7 +4,6 @@ function World(spec) {
     ui,
     screen,
     engine,
-    requestDraw,
     log,
   } = Entity(spec, 'World')
 
@@ -12,7 +11,7 @@ function World(spec) {
   let running = false
   let runTime = 0
 
-  let data = Data()
+  let data = Data(spec.data)
   let level
   
   const globalScope = {
@@ -36,6 +35,10 @@ function World(spec) {
   self.essentials.camera = camera
   
   const field = VectorField({
+    parent: self,
+  })
+  
+  const victory = Victory({
     parent: self,
   })
   
@@ -84,13 +87,15 @@ function World(spec) {
     log('Loading level data:', data)
 
     if (!level) {
-      field.setExpression(data.expression)
-      ui.setExpression(data.expression)
+      field.setExpression(mathquillToMathJS(data.expression))
+      ui.setExpressionLatex(data.expression)
     }
 
     if (level) {
       level.destroy()
     }
+
+    log('Booting level:', data.level)
 
     level = Level({
       parent: self,
@@ -101,6 +106,8 @@ function World(spec) {
   }
   
   function startRunning() {
+    engine.raiseMessage('startRunning')
+
     running = true
     
     ui.mathField.blur()
@@ -108,15 +115,19 @@ function World(spec) {
     
     self.sendEvent('startRunning', [])
     
-    requestDraw()
+    engine.requestDraw()
   }
   
   function stopRunning() {
+    engine.raiseMessage('stopRunning')
+
     runTime = 0
     running = false
     
     ui.mathField.blur()
     ui.expressionEnvelope.setAttribute('disabled', false)
+
+    victory.hide()
     
     setTimeout(() => {
       if (!editing)
@@ -125,7 +136,7 @@ function World(spec) {
     
     self.sendEvent('stopRunning', [])
     
-    requestDraw()
+    engine.requestDraw()
   }
   
   function toggleRunning() {
@@ -136,7 +147,7 @@ function World(spec) {
   function startEditing() {
     editing = true
     ui.editor.setAttribute('hide', false)
-    ui.expressionEnvelope.setAttribute('disabled', true)
+    // ui.expressionEnvelope.setAttribute('disabled', true)
     ui.levelText.focus()
   }
 
@@ -144,7 +155,7 @@ function World(spec) {
     editing = false
     ui.mathField.focus()
     ui.editor.setAttribute('hide', true)
-    ui.expressionEnvelope.setAttribute('disabled', false)
+    // ui.expressionEnvelope.setAttribute('disabled', false)
   }
   
   function toggleEditing() {
@@ -153,16 +164,22 @@ function World(spec) {
   }
 
   function restart() {
+    stopRunning()
+
     const e = data.level.expression
 
-    ui.setExpression(e)
-    field.setExpression(e)
+    ui.setExpressionLatex(e)
+    field.setExpression(mathquillToMathJS(e))
 
     writeData()
   }
 
   function levelCompleted() {
+    victory.show(runTime, 0)
 
+    engine.raiseMessage('victory', {
+        duration: runTime,
+    })
   }
 
   function writeData() {
@@ -172,6 +189,11 @@ function World(spec) {
     })
 
     data.write()
+  }
+
+  function openDataPage() {
+    const dataPage = window.open()
+    dataPage.document.write(data.toString().replaceAll('\n', '<br>'))
   }
   
   // HTML Events
@@ -212,6 +234,12 @@ function World(spec) {
       }
       else
         toggleRunning()
+    }
+    if (event.keyCode === 27) {
+      if (event.shiftKey)  {
+        openDataPage()
+        event.preventDefault()
+      }
     }
   }
 

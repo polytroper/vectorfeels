@@ -2,9 +2,11 @@ function Engine(spec) {
   const self = {}
   
   const {
+    data,
     canvas,
     ticksPerSecond = 60,
     stepping = false,
+    embedded = false,
   } = spec
   
   console.log(`Engine starting up!`)
@@ -15,10 +17,13 @@ function Engine(spec) {
   let time = 0
 
   _.mixIn(self, {
+    get embedded() {return embedded},
+    
     get time() {return time},
     get tickDelta() {return tickDelta},
 
     requestDraw,
+    raiseMessage,
   })
 
   const screen = Screen({
@@ -37,8 +42,8 @@ function Engine(spec) {
       screen,
       tickDelta,
       engine: self,
-      requestDraw,
     },
+    data,
     debug: true,
   })
 
@@ -90,6 +95,15 @@ function Engine(spec) {
     world.sendEvent('resize')
     canvasIsDirty = true
     draw()
+  }
+
+  function raiseMessage(channel, obj={}) {
+    if (embedded) {
+      window.parent.postMessage({
+        channel,
+        ...obj
+      }, '*')
+    }
   }
   
   // HTML events

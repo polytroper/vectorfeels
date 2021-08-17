@@ -11,6 +11,8 @@ function Level(spec) {
     data,
   } = Entity(spec, 'Level')
 
+  console.log('Booting level with data:', data)
+
   let completed = false
   let lowestOrder = 'Z'
 

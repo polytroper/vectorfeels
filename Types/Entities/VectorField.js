@@ -175,6 +175,10 @@ function VectorField(spec) {
 
     let sample = sampler.sample()
 
+    if (sample.__proto__.type == 'ResultSet') {
+      sample = _.last(sample.valueOf())
+    }
+
     if (sample.__proto__.type == 'DenseMatrix') {
       let a = sample._data
 
@@ -190,10 +194,6 @@ function VectorField(spec) {
       output.y = ay
 
       return output
-    }
-
-    if (sample.__proto__.type == 'ResultSet') {
-      sample = _.last(sample.valueOf())
     }
 
     if (_.isUndefined(sample) || _.isNull(sample)) {

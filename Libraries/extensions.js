@@ -101,6 +101,38 @@ _.mixIn = function(...sources) {
   return result
 }
 
+_.stringify = function stringify(obj_from_json, tabs=1) {
+    let spaces = ''
+    let spacesMinusOne = ''
+
+    for (let i = 0; i < tabs; i++)
+      spaces += '&nbsp&nbsp'
+    for (let i = 0; i < tabs-1; i++)
+      spacesMinusOne += '&nbsp&nbsp'
+
+    if (_.isArray(obj_from_json)){
+      let props = obj_from_json.map(v =>
+        `${_.stringify(v, tabs)}`)
+          .join(', ')
+      return `[${props}]`
+    }
+    else if (_.isString(obj_from_json)) {
+      return `'${obj_from_json.replaceAll('\\', '\\\\')}'`
+    }
+    else if (_.isObject(obj_from_json)){
+      let props = Object
+          .keys(obj_from_json)
+          .map(key => `${spaces}${key}: ${_.stringify(obj_from_json[key], tabs+1)}`)
+          .join(',\n')
+      return `{\n${props}\n${spacesMinusOne}}`
+    }
+    else {
+      return JSON.stringify(obj_from_json);
+    }
+    // Implements recursive object serialization according to JSON spec
+    // but without quotes around the keys.
+}
+
 // math.js
 
 math.clamp = function(a, b, t) {

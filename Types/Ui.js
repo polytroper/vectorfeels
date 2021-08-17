@@ -89,6 +89,7 @@ function Ui(spec) {
     levelText,
 
     setExpression,
+    setExpressionLatex,
     setLevelText,
   })
 }

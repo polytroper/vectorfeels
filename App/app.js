@@ -24,9 +24,10 @@ const MQ = MathQuill.getInterface(2);
 console.log('Launching VectorFeels')
 
 // Start Engine with given state
-function start(state={}) {
+function start(data, embedded=false) {
   Engine({
-    state,
+    data,
+    embedded,
     stepping: false,
     canvas: $('#canvas'),
   })
@@ -37,10 +38,10 @@ if (_.includes(location.href, '#')) {
   addEventListener('message', event => {
     console.log('Received message: ', event)
     
-    if (!event.data.levelData)
+    if (_.isUndefined(event.data.puzzleData))
       return
     
-    start(event.data)
+    start(event.data.puzzleData, true)
   })
 }
 else {

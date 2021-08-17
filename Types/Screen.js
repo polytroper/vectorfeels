@@ -99,6 +99,14 @@ function Screen(spec = {}) {
     
     return output
   }
+
+  function screenToFrameScalar(scalar=1) {
+    return transform.invertScalar(scalar)
+  }
+
+  function frameToScreenScalar(scalar=1) {
+    return transform.transformScalar(scalar)
+  }
   
   resize()
   
@@ -115,6 +123,9 @@ function Screen(spec = {}) {
     
     screenToFrameDirection,
     frameToScreenDirection,
+    
+    screenToFrameScalar,
+    frameToScreenScalar,
     
     get width() {return width},
     get height() {return height},

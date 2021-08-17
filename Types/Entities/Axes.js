@@ -3,14 +3,10 @@ function Axes(spec) {
     self,
     screen,
     camera,
+    ctx,
   } = Entity(spec, 'Axes')
   
   const transform = Transform()
-  
-  let {
-  } = spec
-  
-  const ctx = screen.ctx
   
   const origin = Vector2()
   const screenOrigin = Vector2()

@@ -1,20 +1,26 @@
 function Data(spec) {
   let {
-    expression = '',
-    levelText = '',
+    version = '0.0.0',
+    expression,
+    level = {},
+    levelText,
   } = spec || read()
 
-  let level = {}
-
-  try {
-    level = jsyaml.load(levelText) || {}
-  }
-  catch (ex) {
-    console.log('Could not parse level text provided to Data:\n', levelText)
+  if (levelText) {
+    try {
+      level = jsyaml.load(levelText) || {}
+    }
+    catch (ex) {
+      console.log('Could not parse level text provided to Data:\n', levelText)
+    }
   }
 
   if (_.isNumber(level.expression))
     level.expression = level.expression.toString()
+
+  if (!levelText) {
+    levelText = jsyaml.dump(level)
+  }
 
   function write() {
     const obj = {
@@ -82,11 +88,26 @@ function Data(spec) {
   else if (_.isArray(level.expression))
     level.expression = level.expression.join('; ')
 
+  if (!expression)
+    expression = level.expression
+
+  function toString() {
+    return _.stringify({
+      version,
+      expression,
+      level,
+    })
+  }
+
   return {
+    version,
     write,
     expression,
     levelText,
     level,
+
+    toString,
+
     // get expression() {return expression},
     // get levelText() {return levelText},
     // get level() {return level},
