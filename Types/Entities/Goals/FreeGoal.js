@@ -6,17 +6,19 @@ function FreeGoal(spec) {
     camera,
     transform,
     field,
-    globalScope,
+    world,
+    engine,
     ctx,
     size = 0.1,
   } = Goal(spec, 'FreeGoal')
   
   const floater = Floater({
-    globalScope,
     screen,
     camera,
     field,
     transform,
+    world,
+    engine,
   })
 
   const origin = Vector2(transform.position)

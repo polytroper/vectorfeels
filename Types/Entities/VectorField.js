@@ -4,22 +4,16 @@ function VectorField(spec) {
     log,
     
     ui,
+    world,
     screen,
     camera,
-    globalScope,
+    engine,
   } = Entity(spec, 'VectorField')
 
   const ctx = screen.ctx
-  let expression = 'p*i'
+  const p = math.complex()
   
-  const scope = _.mixIn({
-    p: math.complex()
-  }, globalScope)
-  
-  const sampler = Sampler({
-    scope
-  })
-  sampler.setExpression(expression)
+  let bundle
   
   const layer = document.createElement('canvas')
   const layerCtx = layer.getContext('2d')
@@ -69,6 +63,8 @@ function VectorField(spec) {
   }
   
   function tick() {
+    bundle.assign('t', world.runTime)
+    
     for (let i = 0; i < particles.length; i++) {
       const particle = particles[i]
       
@@ -76,7 +72,7 @@ function VectorField(spec) {
         randomizeParticle(particle)
       }
       
-      particle.timer -= globalScope.dt
+      particle.timer -= engine.tickDelta
       
       integrateEuler(particle)
     }
@@ -84,7 +80,7 @@ function VectorField(spec) {
 
   function integrateEuler(particle) {
     sampleAt(particle.position, particle.sample)
-    particle.sample.multiply(globalScope.dt, particleDelta)
+    particle.sample.multiply(engine.tickDelta, particleDelta)
     particle.position.add(particleDelta)
   }
 
@@ -94,21 +90,21 @@ function VectorField(spec) {
 
     // First order
     sampleAt(samplePosition, particleSlope)
-    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particleSlope.multiply(engine.tickDelta/2, particleDelta)
     particle.velocity.add(particleSlope)
 
     particle.position.add(particleDelta, samplePosition)
 
     // Second order
     sampleAt(samplePosition, particleSlope)
-    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particleSlope.multiply(engine.tickDelta/2, particleDelta)
     particle.velocity.add(particleSlope.multiply(2))
 
     particle.position.add(particleDelta, samplePosition)
 
     // Third order
     sampleAt(samplePosition, particleSlope)
-    particleSlope.multiply(globalScope.dt/2, particleDelta)
+    particleSlope.multiply(engine.tickDelta/2, particleDelta)
     particle.velocity.add(particleSlope.multiply(2))
 
     particle.position.add(particleDelta, samplePosition)
@@ -121,7 +117,7 @@ function VectorField(spec) {
     particle.velocity.divide(6)
 
     // Compute position delta
-    particle.velocity.multiply(globalScope.dt, particleDelta)
+    particle.velocity.multiply(engine.tickDelta, particleDelta)
     
     // Integrate delta
     particle.position.add(particleDelta)
@@ -157,57 +153,21 @@ function VectorField(spec) {
     layer.width = screen.width
     layer.height = screen.height
   }
-  
-  function setExpression(text) {
-    log('Setting VectorField expression: ', text)
-    expression = text
-    sampler.setExpression(text)
-  }
 
   function sampleAt(point, output) {
-    scope.p.re = point.x
-    scope.p.im = point.y
-    
-    scope.x = point.x
-    scope.y = point.y
+    p.re = point.x
+    p.im = point.y
 
-    if (!output) output = point
+    if (!output)
+      output = point
 
-    let sample = sampler.sample()
+    let sample = bundle.sample('p', p, 'x', point.x, 'y', point.y)
 
-    if (sample.__proto__.type == 'ResultSet') {
-      sample = _.last(sample.valueOf())
-    }
+    return math.makeNumerical(sample, output)
+  }
 
-    if (sample.__proto__.type == 'DenseMatrix') {
-      let a = sample._data
-
-      let ax = 0
-      let ay = 0
-
-      if (a.length > 0)
-        ax = a[0]
-      if (a.length > 1)
-        ay = a[1]
-      
-      output.x = ax
-      output.y = ay
-
-      return output
-    }
-
-    if (_.isUndefined(sample) || _.isNull(sample)) {
-      sample = 0
-    }
-    
-    if (sample.units || sample.signatures) {
-      sample = 0
-    }
-
-    output.x = math.re(sample)
-    output.y = math.im(sample)
-
-    return output
+  function onChangeBundle(_bundle) {
+    bundle = _bundle
   }
   
   return self.extend({
@@ -217,9 +177,7 @@ function VectorField(spec) {
     resize,
 
     sampleAt,
-    setExpression,
 
-    get expression() {return expression},
-    get expressionLatex() {return sampler.expressionLatex},
+    onChangeBundle,
   })
 }

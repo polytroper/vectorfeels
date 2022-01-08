@@ -6,16 +6,16 @@ function Level(spec) {
     screen,
     engine,
     field,
-    globalScope,
     levelCompleted,
     data,
   } = Entity(spec, 'Level')
 
-  console.log('Booting level with data:', data)
-
   let completed = false
   let lowestOrder = 'Z'
 
+  const instances = {}
+
+  // A default spec to spawn a goal with
   const goalInclusions = {
     goalCompleted,
     goalFailed,
@@ -24,23 +24,45 @@ function Level(spec) {
     getCollectors: () => elements.Collector.instances,
   }
 
+  const aliases = {
+    position: ['p'],
+    rotation: ['r'],
+    type: ['o'],
+  }
+
+  const goalAliases = {
+    ...aliases,
+  }
+
   const elements = {
     Collector: {
       inclusions: {},
+      aliases: {
+        ...aliases,
+      }
     },
     FixedGoal: {
       inclusions: {
         ...goalInclusions,
+      },
+      aliases: {
+        ...goalAliases,
       }
     },
     FreeGoal: {
       inclusions: {
         ...goalInclusions,
+      },
+      aliases: {
+        ...goalAliases,
       }
     },
     PathGoal: {
       inclusions: {
         ...goalInclusions,
+      },
+      aliases: {
+        ...goalAliases,
       }
     }
   }
@@ -56,13 +78,12 @@ function Level(spec) {
   })
 
   const goals = [
-    ...elements.FixedGoal.instances,
-    ...elements.PathGoal.instances,
-    ...elements.FreeGoal.instances,
+    elements.FixedGoal.instances,
+    elements.PathGoal.instances,
+    elements.FreeGoal.instances,
   ]
 
   function start() {
-    console.log('Starting Level')
     refreshLowestOrder()
   }
 
@@ -74,19 +95,60 @@ function Level(spec) {
 
   }
 
-  function loadElement(datum, key) {
-    const e = elements[key]
-    console.log('Loading element ', key)
+  function numericalize(o) {
+    _.each(o, (v, k) => {
+      if (math.isNumerical(v))
+        o[k] = math.makeNumerical(v, Vector2())
+      else if (_.isObject(v))
+        numericalize(o)
+    })
+  }
+// \left\{type:'FixedGoal',p:4+i\right\}
+  function spawn(elementSpec) {
+    console.log('Spawning element: ', elementSpec)
 
-    // Pull element's Entity constructor from window
-    const instance = window[key]({
-      parent: self,
-      ...datum,
-      ...e.inclusions,
-      debug: true,
+    let s = _.cloneDeep(elementSpec)
+    numericalize(s)
+
+    const key = s.type
+    const e = elements[key]
+
+    _.each(aliases, (v, k) => {
+      for (alias of v) {
+        if (s[alias]) {
+          console.log('Reassigning ', alias, k)
+          s[k] = s[alias]
+        }
+      }
     })
 
+    s = {
+      ...s,
+      ...e.inclusions,
+      parent: self,
+      debug: true,
+    }
+
+
+    // Pull element's Entity constructor from window
+    const instance = window[key](s)
+
     e.instances.push(instance)
+
+    instances[elementSpec] = instance
+
+    _.invokeEach(_.flatten(goals), 'refreshColors')
+
+    return instance
+  }
+
+  function mutate(elementSpec, _elementSpec) {
+    const instance = instances[_elementSpec]
+    console.log('Mutating element: ', elementSpec, _elementSpec)
+  }
+
+  function despawn(elementSpec) {
+    console.log('Despawning element: ', elementSpec)
   }
 
   function goalCompleted(goal) {
@@ -96,7 +158,7 @@ function Level(spec) {
       
       refreshLowestOrder()
       
-      for (goal of goals) {
+      for (goal of _.flatten(goals)) {
         if (!goal.completed) {
           return
         }
@@ -111,7 +173,7 @@ function Level(spec) {
     console.log('Failed :(')
     
     if (goal.order) {
-      for (g of goals) {
+      for (g of _.flatten(goals)) {
         if (g.order && !g.completed)
           g.fail()
       }
@@ -120,15 +182,15 @@ function Level(spec) {
   
   function refreshLowestOrder() {
     lowestOrder = 'Z'
-    for (goal of goals) {
+    for (goal of _.flatten(goals)) {
       if (!goal.completed && goal.order < lowestOrder) {
         lowestOrder = goal.order
       }
     }
 
-    console.log('Refreshing lowest order: ', lowestOrder)
+    // console.log('Refreshing lowest order: ', lowestOrder)
     
-    _.invokeEach(goals, 'refresh')
+    _.invokeEach(_.flatten(goals), 'refresh')
   }
 
   function reset() {
@@ -136,7 +198,7 @@ function Level(spec) {
   }
 
   function stopRunning() {
-    _.invokeEach(goals, 'reset')
+    _.invokeEach(_.flatten(goals), 'reset')
     completed = false
     reset()
   }
@@ -152,5 +214,9 @@ function Level(spec) {
     stopRunning,
 
     get completed() {return completed},
+
+    spawn,
+    mutate,
+    despawn,
   })
 }

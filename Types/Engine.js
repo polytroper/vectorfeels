@@ -30,15 +30,8 @@ function Engine(spec) {
     canvas
   })
   
-  const ui = Ui({
-    screen,
-    canvas,
-    engine: self,
-  })
-  
   const world = World({
     essentials: {
-      ui,
       screen,
       tickDelta,
       engine: self,
@@ -48,7 +41,6 @@ function Engine(spec) {
   })
 
   _.mixIn(self, {
-    ui,
     world,
   })
 

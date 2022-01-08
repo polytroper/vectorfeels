@@ -4,18 +4,20 @@ function Collector(spec = {}) {
     screen,
     camera,
     field,
-    globalScope,
+    world,
+    engine,
     size = 1
   } = Entity(spec, 'Collector')
   
   const transform = Transform(spec, self)
   
   const floater = Floater({
-    globalScope,
     screen,
     camera,
     field,
     transform,
+    world,
+    engine,
   })
 
   const origin = Vector2(transform.position)
@@ -27,6 +29,12 @@ function Collector(spec = {}) {
   // })
   
   reset()
+
+  const sprite = Sprite({
+    asset: 'images.mouse',
+    size,
+    parent: self,
+  })
 
   function start() {
     // trail.reset()
@@ -43,7 +51,7 @@ function Collector(spec = {}) {
     ctx.lineWidth = 0.1
     
     ctx.beginPath()
-    ctx.arc(0, 0, size/2, 0, TAU)
+    // ctx.arc(0, 0, size/2, 0, TAU)
     // ctx.fill()
     ctx.stroke()
   }

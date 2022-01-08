@@ -1,33 +1,13 @@
 function Data(spec) {
   let {
-    version = '0.0.0',
-    expression,
-    level = {},
-    levelText,
+    version = '0.1.0',
+    expressions = [null],
   } = spec || read()
-
-  if (levelText) {
-    try {
-      level = jsyaml.load(levelText) || {}
-    }
-    catch (ex) {
-      console.log('Could not parse level text provided to Data:\n', levelText)
-    }
-  }
-
-  if (_.isNumber(level.expression))
-    level.expression = level.expression.toString()
-
-  if (!levelText) {
-    levelText = jsyaml.dump(level)
-  }
 
   function write() {
     const obj = {
       version: VERSION,
-      expression,
-      levelText,
-      level,
+      expressions,
     }
 
     const yaml = jsyaml.dump(obj)
@@ -40,11 +20,7 @@ function Data(spec) {
   function read() {
     const empty = {
       version: VERSION,
-      expression: '',
-      levelText: '',
-      level: {
-        expression: ''
-      }
+      expressions: [null],
     }
 
     const url = window.location.href
@@ -81,35 +57,18 @@ function Data(spec) {
     return obj
   }
 
-  if (_.isUndefined(level.expression))
-    level.expression = ''
-  else if (_.isNull(level.expression))
-    level.expression = ''
-  else if (_.isArray(level.expression))
-    level.expression = level.expression.join('; ')
-
-  if (!expression)
-    expression = level.expression
-
   function toString() {
     return _.stringify({
       version,
-      expression,
-      level,
+      expressions,
     })
   }
 
   return {
     version,
+    expressions,
+
     write,
-    expression,
-    levelText,
-    level,
-
     toString,
-
-    // get expression() {return expression},
-    // get levelText() {return levelText},
-    // get level() {return level},
   }
 }

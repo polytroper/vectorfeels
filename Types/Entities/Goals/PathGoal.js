@@ -50,7 +50,7 @@ function PathGoal(spec) {
   let pathProgress = 0
   
   const outerColor = Color()
-  const outerColors = [
+  const outerrColors = [
     Color('#111111'),
     Color('#444444'),
     Color('#333333'),

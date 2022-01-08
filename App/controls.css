@@ -35,17 +35,16 @@
 }
 
 #run-button {
-  position: absolute;
-  
-  right: 0;
-  top: 0;
+  position: fixed;
+  right: 10vw;
+  bottom: 10vw;
+
+  border-radius: 5px;
+  padding: 2px 6px;
 }
 
 #stop-button {
-  position: absolute;
   
-  right: 0;
-  top: 0;
 }
 
 #run-button:not(:hover) {
@@ -61,14 +60,16 @@
 }
 
 #restart-button {
-  position: absolute;
-
   width: 30px;
   
-  left: 0;
-  top: 0;
-  
   padding: 0;
+  border-radius: 5px;
+  
+  position: fixed;
+  right: 10vw;
+  top: 10vw;
+
+  z-index: 2;
 }
 
 #restart-button > .string {

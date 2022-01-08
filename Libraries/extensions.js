@@ -44,8 +44,26 @@ _.eachDeep = function(array, callback, args = []) {
     if (_.isArray(v))
       _.eachDeep(v, callback, args)
     else
-      callback.apply(null, [v, ...args])
+      callback.apply(null, [v, i, array, ...args])
   }
+}
+
+_.eachDeepObject = function(object, callback, args = []) {
+  _.each(object, (v, k) => {
+    if (_.isObject(v))
+      _.eachDeepObject(v, callback, args)
+    else
+      callback.apply(null, [v, k, object, ...args])
+  })
+}
+
+_.eachDeepOnObject = function(object, callback, args = []) {
+  callback.apply(null, [object, ...args])
+  _.each(object, (v, k) => {
+    if (_.isObject(v)) {
+      _.eachDeepOnObject(v, callback, args)
+    }
+  })
 }
 
 _.isInDeep = function(array, object) {
@@ -133,6 +151,19 @@ _.stringify = function stringify(obj_from_json, tabs=1) {
     // but without quotes around the keys.
 }
 
+_.isAccessor = (object, property) => {
+  const o = Object.getOwnPropertyDescriptor(object, property)
+
+  if (!_.isObject(o))
+    return false
+  
+  return !('value' in o)
+}
+
+_.isVector2 = v => {
+  return _.isAccessor(v, 'x') && _.isAccessor(v, 'y')
+}
+
 // math.js
 
 math.clamp = function(a, b, t) {
@@ -203,6 +234,116 @@ math.toTex = function(text) {
 
   return latex
 }
+
+math.isComplex = function(v) {
+  if (!_.isObject(v))
+    return false
+  return v.__proto__.type == 'Complex'
+}
+
+math.isNumerical = function(v) {
+  return math.isComplex(v) || _.isNumber(v)
+}
+
+math.makeNumerical = (() => {
+  // Return the right kind of zero based on output type
+  const returnZero = output => {
+    if (math.isComplex(output)) {
+      output.re = 0
+      output.im = 0
+      return output
+    }
+    
+    if (_.isVector2(output)) {
+      output.x = 0
+      output.y = 0
+      return output
+    }
+    
+    return 0
+  }
+  
+  return function(v, output) {
+    if (_.isUndefined(v) || _.isNull(v))
+      return returnZero(output)
+  
+    if (v.__proto__.type == 'ResultSet')
+      v = _.last(v.valueOf())
+    
+    if (math.isComplex(v)) {
+      if (!output)
+        return v
+      if (math.isComplex(output)) {
+        output.re = v.re
+        output.im = v.im
+        return output
+      }
+      if (_.isVector2(output)) {
+        output.x = v.re
+        output.y = v.im
+        return output
+      }
+      throw '_.makeNumerical output is not a valid output object!'
+    }
+
+    if (_.isNumber(v)) {
+      if (!output)
+        return v
+      if (math.isComplex(output)) {
+        output.re = v
+        output.im = 0
+        return output
+      }
+      if (_.isVector2(output)) {
+        output.x = v
+        output.y = 0
+        return output
+      }
+      throw '_.makeNumerical output is not a valid output object!'
+    }
+    
+    // Seems redundant, but this check must be performed twice in case the final element of the ResultSet is undefined
+    if (_.isUndefined(v) || _.isNull(v))
+      return returnZero(output)
+    
+    // Return 0 if v is a plain JS object
+    if (_.isObject(v) && _.isUndefined(v.__proto__.type))
+      return returnZero(output)
+    
+    if (v.units || v.signatures)
+      return returnZero(output)
+  
+    // If v is a matrix, convert it to a complex number by treating it as a 2-vector
+    if (v.__proto__.type == 'DenseMatrix') {
+      let a = v._data
+  
+      let ax = 0
+      let ay = 0
+  
+      if (a.length > 0)
+        ax = a[0]
+      if (a.length > 1)
+        ay = a[1]
+
+      if (!output)
+        return math.complex(0, 0)
+      if (math.isComplex(output)) {
+        output.re = ax
+        output.im = ay
+        return output
+      }
+      if (_.isVector2(output)) {
+        output.x = ax
+        output.y = ay
+        return output
+      }
+      throw '_.makeNumerical output is not a valid output object!'
+    }
+
+    console.error('Unable to coerce value to numerical:', v.__proto__.type, v)
+    return v
+  }
+})()
 
 math.pinf = Number.POSITIVE_INFINITY
 math.ninf = Number.NEGATIVE_INFINITY

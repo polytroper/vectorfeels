@@ -14,6 +14,12 @@ function FixedGoal(spec) {
     width: size,
     height: size,
   })
+
+  const sprite = Sprite({
+    asset: 'images.cheese',
+    size: size*4,
+    parent: self,
+  })
   
   function drawLocal() {
     ctx.fillStyle = self.fillStyle
@@ -21,7 +27,7 @@ function FixedGoal(spec) {
     ctx.lineWidth = self.strokeWidth
 
     ctx.beginPath()
-    ctx.rect(-size, -size, size*2, size*2)
+    // ctx.rect(-size, -size, size*2, size*2)
     ctx.fill()
   }
   
@@ -35,9 +41,14 @@ function FixedGoal(spec) {
     // Reset alpha
     ctx.globalAlpha = 1
   }
+
+  function onSetOpacity(opacity) {
+    sprite.opacity = opacity
+  }
   
   return self.extend({
     draw,
     shape,
+    onSetOpacity,
   })
 }

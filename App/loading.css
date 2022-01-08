@@ -1,0 +1,16 @@
+.loading {
+  z-index: 2;
+}
+
+#loading-remarks {
+  max-width: 80vmin;
+}
+
+#loading-remarks > h3 {
+  text-align: center;
+}
+
+#loading-string {
+  text-decoration: underline;
+  cursor: pointer;
+}

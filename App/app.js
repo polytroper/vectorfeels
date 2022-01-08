@@ -4,7 +4,7 @@
 var DEBUG = false
 
 // Declare version
-const VERSION = '0.0.0'
+const VERSION = '0.1.0'
 
 // Default level string
 const DEFAULT_LEVEL = `expression: cos(y)+sin(x)*i
@@ -21,7 +21,7 @@ FixedGoal:
 // Create a MathQuill interface
 const MQ = MathQuill.getInterface(2);
 
-console.log('Launching VectorFeels')
+console.log('Loading app.js')
 
 // Start Engine with given state
 function start(data, embedded=false) {

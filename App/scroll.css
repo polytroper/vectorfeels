@@ -1,3 +1,271 @@
+#scroll-bar {
+  justify-content: flex-start;
+}
+
 .scroll {
+  background: rgba(255, 255, 255, 0);
+
+  border-radius: 0px;
   
+  overflow: scroll;
+
+  min-width: 80px;
+  padding: 10vw 0px;
+
+  position: absolute;
+  left: 10vw;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+}
+
+.scroll #verse-envelope > * {
+  margin-top: 5px;
+}
+
+.scroll #verse-envelope {
+  position: relative;
+  top: 0px;
+  bottom: 0;
+  width: fit-content;
+  min-width: 80px;
+}
+
+.scroll #scroll-buttons {
+  position: relative;
+  display: flex;
+  flex-grow: 0;
+  justify-content: start;
+  z-index: 1;
+}
+
+.scroll #add-verse-message {
+  font-size: 12px;
+  
+  position: relative;
+  padding: 0px 5px;
+  min-width: 49px;
+  
+  background: transparent;
+  color: white;
+
+  border-style: solid;
+  border-color: #888;
+  border-width: 1px 1px 1px 0;
+}
+
+.scroll #add-verse-button {
+  padding: 0px;
+  min-width: 18px;
+  width: 18px;
+  
+  background: transparent;
+  color: white;
+
+  border: 1px solid #888;
+}
+
+.scroll.mode0 #add-verse-button {
+  border: 1px solid #444;
+}
+
+.scroll.mode1 #add-verse-button {
+  border: 1px solid #888;
+}
+
+.scroll.mode2 #add-verse-button {
+  border: 1px solid #004444;
+}
+
+.scroll #add-verse-button .string {
+  margin: 0;
+  padding: 0;
+}
+
+.scroll #add-verse-button:hover {
+  background: #888;
+  color: black;
+}
+
+.scroll.mode0 #add-verse-message {
+  border: 1px solid #444;
+}
+
+.scroll.mode1 #add-verse-message {
+  border: 1px solid #888;
+}
+
+.scroll.mode2 #add-verse-message {
+  border: 1px solid #004444;
+}
+
+.verse {
+  background: transparent;
+
+  position: relative;
+  display: flex;
+  width: fit-content;
+  min-width: 80px;
+  flex-direction: row-reverse;
+
+  transition-property: color;
+  transition-duration: 0.2s;
+
+  transition-property: background;
+  transition-duration: 0.2s;
+}
+
+.verse.divider {
+  min-width: 0;
+}
+
+.verse > .drag-envelope {
+  display: flex;
+  flex-basis: 100%;
+}
+
+.verse.quill > .envelope {
+  flex-basis: 100%;
+}
+
+.verse > .handle {
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+
+  min-width: 20px;
+  background: #FFF;
+  color: #BBB;
+
+  transition-property: background;
+  transition-duration: 0.2s;
+}
+
+.verse.divider > .handle {
+  border-radius: 0 0 10px 0;
+}
+
+.verse.mode0 .handle {
+  background: #666;
+}
+
+.verse.mode1 .handle {
+  background: #FFF;
+}
+
+.verse.mode2 .handle {
+  background: #004444;
+}
+
+.verse > .handle:hover {
+  background: #888;
+}
+
+.verse.dragging > .handle {
+  background: #888;
+}
+
+.verse > .handle > .string {
+  user-select: none;
+}
+
+.verse > .trash-banner {
+  color: #FFF;
+  background: #F00;
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.verse > .trash-banner > .outline {
+  background: transparent;
+  border: 1px solid white;
+  
+  position: absolute;
+  
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+svg {
+  z-index: 1;
+}
+
+.bead {
+  cursor: pointer;
+  z-index: 1;
+  pointer-events: all;
+}
+
+.bead[hide=true] {
+  display: none;
+}
+
+.bead > * {
+  stroke: #8FF;
+  stroke-width: 1px;
+  transition: 0.1s;
+}
+
+.bead:hover > * {
+  stroke-width: 2px;
+}
+
+.bead text {
+  font-size: 10px;
+  fill: #8FF;
+  stroke: none;
+}
+
+.drag-placeholder {
+  position: relative;
+  background: transparent;
+}
+
+.drag-placeholder.dormant {
+  height: 0px;
+  margin: 0px;
+  /* display: none; */
+}
+
+.verse.dragging {
+  position: absolute;
+}
+
+.verse.transitioning {
+  pointer-events: none;
+}
+
+.verse.appearing {
+  position: absolute;
+  width: 80px;
+}
+
+.verse .mq-math-mode {
+  padding-left: 2px;
+  padding-right: 2px;
+  color: #DDD;
+  border: 1px solid rgba(127, 127, 127, 0.2);
+  background: transparent;
+}
+
+.verse.focused {
+  background: white;
+}
+
+.verse .mq-focused {
+  color: black;
+}
+
+.scroll .verse.hide {
+  display: none;
+}
+
+.scroll.mode0 .handle {
+  background: #
 }

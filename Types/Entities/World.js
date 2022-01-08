@@ -1,7 +1,6 @@
 function World(spec) {
   const {
     self,
-    ui,
     screen,
     engine,
     log,
@@ -13,19 +12,21 @@ function World(spec) {
 
   let data = Data(spec.data)
   let level
-  
-  const globalScope = {
-    get t() {return runTime},
-    get dt() {return engine.tickDelta},
 
-    get pi() {return PI},
-    get tau() {return TAU},
-    
-    get running() {return running},
-  }
+  // The current active edit-mode bundle
+  let bundle
 
-  self.essentials.globalScope = globalScope
+  // The build-mode-specified bundle
+  let buildBundle
+
+  // The edit-mode-specified bundle
+  let editBundle
+
+  // Whether the bundle has diverged from the buildBundle yet
+  let diverged = false
+
   self.essentials.ctx = screen.ctx
+  self.essentials.world = self
   
   const camera = Camera({
     parent: self,
@@ -33,6 +34,10 @@ function World(spec) {
   })
 
   self.essentials.camera = camera
+  
+  const ui = Ui({
+    parent: self,
+  })
   
   const field = VectorField({
     parent: self,
@@ -45,13 +50,21 @@ function World(spec) {
   const axes = Axes({
     parent: self,
   })
+
+  const assets = Assets({
+    paths: ASSETS,
+    callbacks: {
+      complete: assetsComplete,
+      progress: assetsProgress,
+    }
+  })
   
+  self.essentials.assets = assets
   self.essentials.field = field
 
   function start() {
     loadData(data)
-
-    ui.setLevelText(data.levelText)
+    modeChanged()
   }
   
   function tick() {
@@ -70,39 +83,37 @@ function World(spec) {
     screen.ctx.fillRect(0, 0, screen.width, screen.height)
   }
 
-  function loadLevelText(str) {
-    console.log(`Loading level text:`, str)
-    let d = Data({
-      expression: field.expression,
-      levelText: str,
-    })
-
-    loadData(d)
-  }
-
   function loadData(d) {
+    const _level = level
     let oldData = data
     data = d
-  
-    log('Loading level data:', data)
 
-    if (!level) {
-      field.setExpression(mathquillToMathJS(data.expression))
-      ui.setExpressionLatex(data.expression)
+    if (!_level) {
+      bundle = EvaluatorBundle({
+        latexs: d.expressions,
+        externalVariables: ['t', 'p', 'x', 'y'],
+        scope: {
+          dt: engine.tickDelta,
+          pi: PI,
+          tau: TAU,
+        },
+        level,
+      })
+
+      diverged = false
+      ui.setShowRestartButton(diverged)
+      buildBundle = bundle.clone()
+      editBundle = bundle.clone()
+      ui.scroll.setExpressions(data.expressions)
     }
+  }
 
-    if (level) {
-      level.destroy()
-    }
-
-    log('Booting level:', data.level)
-
-    level = Level({
-      parent: self,
-      levelCompleted,
-      data: data.level,
-      debug: true,
-    })
+  function loadBundle(b) {
+    bundle = b.clone()
+    editBundle = b.clone()
+    ui.setShowRestartButton(diverged)
+    ui.scroll.setExpressions(bundle.latexs)
+    self.sendEvent('onChangeBundle', [bundle])
   }
   
   function startRunning() {
@@ -110,12 +121,15 @@ function World(spec) {
 
     running = true
     
-    ui.mathField.blur()
-    ui.expressionEnvelope.setAttribute('disabled', true)
+    //ui.mathField.blur()
+    //ui.expressionEnvelope.setAttribute('disabled', true)
     
     self.sendEvent('startRunning', [])
+
+    ui.setShowRestartButton(false)
     
     engine.requestDraw()
+    modeChanged()
   }
   
   function stopRunning() {
@@ -124,19 +138,22 @@ function World(spec) {
     runTime = 0
     running = false
     
-    ui.mathField.blur()
-    ui.expressionEnvelope.setAttribute('disabled', false)
+    //ui.mathField.blur()
+    //ui.expressionEnvelope.setAttribute('disabled', false)
 
     victory.hide()
+    console.log('Loading edit bundle: ', editBundle)
+    loadBundle(editBundle)
     
     setTimeout(() => {
-      if (!editing)
-        ui.mathField.focus()
+      //if (!editing)
+        //ui.mathField.focus()
     }, 250)
     
     self.sendEvent('stopRunning', [])
     
     engine.requestDraw()
+    modeChanged()
   }
   
   function toggleRunning() {
@@ -144,18 +161,19 @@ function World(spec) {
     else startRunning()
   }
 
+  function modeChanged() {
+    console.log('Mode changed to ', self.mode)
+    self.sendEvent('onModeChanged', [self.mode])
+  }
+
   function startEditing() {
     editing = true
-    ui.editor.setAttribute('hide', false)
-    // ui.expressionEnvelope.setAttribute('disabled', true)
-    ui.levelText.focus()
+    modeChanged()
   }
 
   function stopEditing() {
     editing = false
-    ui.mathField.focus()
-    ui.editor.setAttribute('hide', true)
-    // ui.expressionEnvelope.setAttribute('disabled', false)
+    modeChanged()
   }
   
   function toggleEditing() {
@@ -166,10 +184,8 @@ function World(spec) {
   function restart() {
     stopRunning()
 
-    const e = data.level.expression
-
-    ui.setExpressionLatex(e)
-    field.setExpression(mathquillToMathJS(e))
+    diverged = false
+    loadBundle(buildBundle)
 
     writeData()
   }
@@ -182,10 +198,21 @@ function World(spec) {
     })
   }
 
+  function getDiverged() {
+    if (editBundle.count != buildBundle.count)
+      return true
+    
+    for (let i = 0; i < editBundle.count; i++) {
+      if (editBundle.latexs[i] != buildBundle.latexs[i])
+        return true
+    }
+
+    return false
+  }
+
   function writeData() {
     const data = Data({
-      expression: field.expression,
-      levelText: ui.levelText.value
+      expressions: [...ui.scroll.serialize()],
     })
 
     data.write()
@@ -195,18 +222,100 @@ function World(spec) {
     const dataPage = window.open()
     dataPage.document.write(data.toString().replaceAll('\n', '<br>'))
   }
-  
-  // HTML Events
 
-  function onChangeExpression(text, latex) {
-    field.setExpression(text)
+  function save() {
     writeData()
   }
 
-  function onChangeLevelText(text) {
-    console.log('Level text changed to:', text)
-    loadLevelText(text)
-    writeData()
+  function modify() {
+    editBundle = bundle.clone()
+    diverged = getDiverged()
+    ui.setShowRestartButton(diverged && self.mode == 1)
+  }
+
+  // Asset Loading Events
+  
+  function assetsComplete() {
+    console.log(`All World assets loaded`)
+    
+    ui.loadingVeilString.innerHTML = 'click to begin'
+    ui.loadingVeil.addEventListener('click', loadingVeilClicked)
+  }
+  
+  function assetsProgress(progress, total) {
+    console.log(`Loaded ${progress} of ${total} assets`)
+    
+    ui.loadingVeilString.innerHTML = `loading…<br>${Math.round(100*progress/total)}%`
+  }
+  
+  function loadingVeilClicked() {
+    console.log(`Loading veil clicked`)
+    
+    const lv = d3.select(ui.loadingVeil)
+    
+    lv.style('opacity', '1')
+      .transition()
+        .duration(1000)
+        .style('opacity', '0')
+      .on('end', v => {
+        lv.style('display', 'none')
+      })
+  }
+  
+  // HTML Events
+
+  function onChangeLatexs(latexs, write=true) {
+    // console.log('Expressions changed to:', expressions)
+    // console.log('Mathjs: ', expressions.map(mathquillToMathJS))
+    
+    if (level) {
+      level.destroy()
+    }
+
+    level = Level({
+      parent: self,
+      levelCompleted,
+      data: {},
+      debug: true,
+    })
+
+    bundle = EvaluatorBundle({
+      latexs,
+      externalVariables: ['t', 'p', 'x', 'y'],
+      scope: {
+        dt: engine.tickDelta,
+        pi: PI,
+        tau: TAU,
+      },
+      level,
+    })
+
+    if (self.mode == 2) {
+      buildBundle = bundle.clone()
+      editBundle = bundle.clone()
+    }
+    else if (self.mode == 1) {
+      editBundle = bundle.clone()
+    }
+
+    modify()
+
+    self.sendEvent('onChangeBundle', [bundle])
+
+    if (write)
+      writeData()
+  }
+
+  function onChangeBundle() {
+    if (bundle.valid) {
+      ui.setMessage('')
+    }
+    else if (!bundle.compiles) {
+      ui.setMessage('Does not compile!')
+    }
+    else if (!bundle.complete) {
+      ui.setMessage('Unknown variable!')
+    }
   }
 
   function onClickRunButton() {
@@ -260,9 +369,23 @@ function World(spec) {
     tick,
     draw,
     
+    save,
+    modify,
     toggleRunning,
 
-    onChangeExpression,
-    onChangeLevelText,
+    onChangeBundle,
+    onChangeLatexs,
+
+    get running() {return running},
+    get runTime() {return runTime},
+    get bundle() {return bundle},
+
+    get mode() {
+      if (running)
+        return 0
+      if (editing)
+        return 2
+      return 1
+    },
   })
 }

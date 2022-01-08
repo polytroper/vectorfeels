@@ -45,7 +45,10 @@ function Test(value) {
     const successMessage = `As expected, ${stringify(value)} equals ${stringify(other)}`
     const failureMessage = `${stringify(value)} does not equal ${stringify(other)}`
     
-    if (_.isObject(value)) {
+    if (_.isArray(value)) {
+      assert(_.isMatch(value, other), successMessage, failureMessage)
+    }
+    else if (_.isObject(value)) {
       assert(value.equals(other), successMessage, failureMessage)
     }
     else {
@@ -57,7 +60,10 @@ function Test(value) {
     const successMessage = `As expected, ${stringify(value)} does not equal ${stringify(other)}`
     const failureMessage = `${stringify(value)} equals ${stringify(other)}`
     
-    if (_.isObject(value)) {
+    if (_.isArray(value)) {
+      assert(!_.isMatch(value, other), successMessage, failureMessage)
+    }
+    else if (_.isObject(value)) {
       assert(!value.equals(other), successMessage, failureMessage)
     }
     else {
@@ -251,4 +257,17 @@ LOGTESTS = false;
   
   Test(Test(a).equals).fails(b)
   Test(Test(a).notEquals).fails(a)
+
+  // Test array equality
+  
+  const a1 = ['a', ['b', 'c']]
+  const a2 = ['a', ['b', 'c']]
+  const a3 = ['a', ['b', 'd']]
+  
+  Test(a1).equals(a1)
+  Test(a1).equals(a2)
+  Test(a1).notEquals(a3)
+  
+  Test(Test(a1).equals).fails(a3)
+  Test(Test(a1).notEquals).fails(a2)
 })()

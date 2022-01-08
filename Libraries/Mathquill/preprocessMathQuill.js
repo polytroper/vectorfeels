@@ -61,6 +61,9 @@ function findClosingBrace(str, startIdx) {
  * @return {string} the input expression with LaTeX commands converted to mathjs
  */
 function mathquillToMathJS(fromMQ) {
+  if (fromMQ == null)
+    return null
+  
   const replacements = [
     { tex: '\\operatorname{diff}', mathjs: 'diff' },
     { tex: '\\operatorname{pdiff}', mathjs: 'pdiff' },
@@ -78,8 +81,9 @@ function mathquillToMathJS(fromMQ) {
     { tex: '\\cdot', mathjs: ' * ' },
     { tex: '\\left', mathjs: '' },
     { tex: '\\right', mathjs: '' },
-    { tex: '{', mathjs: '(' },
-    { tex: '}', mathjs: ')' },
+// These two are commented to prevent {braced} objects from being improperly converted to (parenthesesed) groups
+    // { tex: '{', mathjs: '(' },
+    // { tex: '}', mathjs: ')' },
     { tex: '~', mathjs: ' ' },
     { tex: '\\', mathjs: ' ' }
   ]
@@ -123,11 +127,26 @@ function fracToDivision(expr) {
 
   if (fracStart < 0) { return expr }
 
-  const divIdx = findClosingBrace(expr, numStart)
+  const numeratorClosingIndex = findClosingBrace(expr, numStart)
+  const denominatorClosingIndex = findClosingBrace(expr, numeratorClosingIndex+1)
+
+  // Slice out header, numerator, denominator, and footer strings
+  const header = expr.slice(0, fracStart)
+  const numerator = expr.slice(numStart+1, numeratorClosingIndex)
+  const denominator = expr.slice(numeratorClosingIndex+2, denominatorClosingIndex)
+  const footer = expr.slice(denominatorClosingIndex+1)
+
+  const newExpr = header+'('+numerator+')/('+denominator+')'+footer
+
+  /*
   // Remove frac, and add "/"
   const newExpr = expr.slice(0, fracStart) +
-    expr.slice(numStart, divIdx + 1) + '/' +
-    expr.slice(divIdx + 1)
-
+    expr.slice(numStart, numeratorClosingIndex + 1) + '/' +
+    expr.slice(numeratorClosingIndex + 1)
+  */
+  
   return fracToDivision(newExpr)
 }
+
+// Test fracToDivision
+//console.log("FRACTODIVISION: ", fracToDivision('\\frac{a}{1+\\frac{b}{c}}'))

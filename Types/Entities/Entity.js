@@ -27,7 +27,6 @@ function Entity(spec, defaultName = 'Entity') {
   // Mix the essentials into self
   _.mixIn(self, {
     self,
-    base: self,
     log,
     ...essentials
   })
@@ -91,6 +90,10 @@ function Entity(spec, defaultName = 'Entity') {
   function extend(extension) {
     // Push arrayed events into their arrays
     _.each(self, (array, key) => {
+      // Skip any 'get' accessors
+      if (_.isAccessor(extension, key))
+        return
+      
       const event = extension[key]
 
       // Is this an event array?
@@ -111,7 +114,8 @@ function Entity(spec, defaultName = 'Entity') {
     // Copy all of self into a base object so any extending objects may access overridden methods/variables
     self.base = _.mixIn({}, self)
 
-    return self
+    // Return an object containing all of self, plus anything included in the spec. This allows Entities to destructure spec and self in a single statement. The third mixin ensures that properties of spec do not overwrite properties of self.
+    return _.mixIn(self, spec, _.mixIn({}, self))
   }
   
   function hasChild(child) {
@@ -167,7 +171,7 @@ function Entity(spec, defaultName = 'Entity') {
     tick: [tick],
     draw: draw,
     
-    destroy: destroy,
+    destroy,
     
     get name() {return name},
     set name(v) {name = v},
@@ -206,6 +210,9 @@ function Entity(spec, defaultName = 'Entity') {
     toString,
   })
 
-  // Return an object containing all of self, plus anything included in the spec. This allows Entities to destructure spec and self in a single statement.
-  return _.mixIn({}, spec, self)
+  // Copy all of self into a base object so any extending objects may access overridden methods/variables
+  self.base = _.mixIn({}, self)
+
+  // Return an object containing all of self, plus anything included in the spec. This allows Entities to destructure spec and self in a single statement. The third mixin ensures that properties of spec do not overwrite properties of self.
+  return _.mixIn(self, spec, _.mixIn({}, self))
 }

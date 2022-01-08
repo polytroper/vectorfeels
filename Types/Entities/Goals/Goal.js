@@ -4,7 +4,7 @@ function Goal(spec) {
     screen,
     camera,
     ctx,
-    globalScope,
+    world,
     log,
     timer = 0,
     order = null,
@@ -69,7 +69,7 @@ function Goal(spec) {
   }
 
   function tick() {
-    if (globalScope.running) {
+    if (world.running) {
       self.refreshTriggered()
       self.checkComplete()
     }
@@ -161,7 +161,9 @@ function Goal(spec) {
   }
 
   function setAlphaByFlashFade() {
-    ctx.globalAlpha = completed ? flashProgress : 1
+    const a = completed ? flashProgress : 1
+    ctx.globalAlpha = a
+    self.sendEvent('onSetOpacity', [a])
   }
 
   function draw() {
@@ -170,6 +172,7 @@ function Goal(spec) {
   }
 
   function reset() {
+    console.log('Resetting goal at '+transform.position.toString)
     triggered = false
     completed = false
     failed = false

@@ -2,7 +2,8 @@ function Floater(spec) {
   let {
     transform,
     graph,
-    globalScope,
+    world,
+    engine,
     field,
     camera,
     screen,
@@ -27,7 +28,7 @@ function Floater(spec) {
   const slope = Vector2()
   
   function tick() {
-    if (!globalScope.running || fixed) {
+    if (!world.running || fixed) {
       return
     }
 
@@ -41,7 +42,7 @@ function Floater(spec) {
     field.sampleAt(transform.position, velocity)
 
     // Compute position delta
-    velocity.multiply(globalScope.dt, delta)
+    velocity.multiply(engine.tickDelta, delta)
     
     // Integrate delta
     transform.position.add(delta)
@@ -53,21 +54,21 @@ function Floater(spec) {
 
     // First order
     field.sampleAt(samplePosition, slope)
-    slope.multiply(globalScope.dt/2, delta)
+    slope.multiply(engine.tickDelta/2, delta)
     velocity.add(slope)
 
     transform.position.add(delta, samplePosition)
 
     // Second order
     field.sampleAt(samplePosition, slope)
-    slope.multiply(globalScope.dt/2, delta)
+    slope.multiply(engine.tickDelta/2, delta)
     velocity.add(slope.multiply(2))
 
     transform.position.add(delta, samplePosition)
 
     // Third order
     field.sampleAt(samplePosition, slope)
-    slope.multiply(globalScope.dt/2, delta)
+    slope.multiply(engine.tickDelta/2, delta)
     velocity.add(slope.multiply(2))
 
     transform.position.add(delta, samplePosition)
@@ -80,7 +81,7 @@ function Floater(spec) {
     velocity.divide(6)
 
     // Compute position delta
-    velocity.multiply(globalScope.dt, delta)
+    velocity.multiply(engine.tickDelta, delta)
     
     // Integrate delta
     transform.position.add(delta)

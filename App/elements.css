@@ -1,3 +1,18 @@
+.layer {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  pointer-events: none;
+}
+
+.layer > * {
+  pointer-events: all;
+}
+
 .bar {
   position: absolute;
 
@@ -26,7 +41,7 @@
 .bar.left {
   left: 0;
   bottom: 0;
-  right: 0;
+  top: 0;
 
   flex-direction: column;
 }
@@ -34,7 +49,7 @@
 .bar.right {
   right: 0;
   bottom: 0;
-  left: 0;
+  top: 0;
 
   flex-direction: column;
 }
@@ -45,6 +60,22 @@
   right: 0;
 }
 
+.bar.detached {
+  background: transparent;
+
+  margin: 20px;
+  padding: 0;
+
+  border-radius: 0;
+  overflow: visible;
+
+  pointer-events: none;
+}
+
+.bar.detached > * {
+  pointer-events: all;
+}
+
 .bar.floating {
   background: transparent;
 
@@ -53,19 +84,25 @@
 
   border-radius: 0;
   overflow: visible;
+
+  pointer-events: none;
 }
 
-.bar.floating > .button,.envelope {
+.bar.floating > * {
+  pointer-events: all;
+}
+
+.bar.floating > .button, .bar.floating > .envelope {
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-.bar > *[hide=true] {
-  display: none;
 }
 
 .bar > .envelope {
   display: flex;
   border-radius: 5px;
+}
+
+.bar,#ui > *[hide=true] {
+  display: none;
 }
 
 .button {
@@ -76,14 +113,17 @@
   
   background: #fff;
   
-  border-radius: 5px;
-  
   display: flex;
   align-items: center;
   justify-content: center;
   
   cursor: pointer;
+  pointer-events: all;
   transition: 0.2s;
+}
+
+.bar.floating > * {
+  border-radius: 5px;
 }
 
 .button:hover {
@@ -93,6 +133,7 @@
 
 .string {
   user-select: none;
+  pointer-events: none;
 }
 
 .label {
@@ -102,4 +143,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.veil {
+  position: absolute;
+  
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  opacity: 1;
+  
+  background: white;
+  pointer-events: all;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  /*text-align: center;*/
+}
+
+.veil[hide=true] {
+  opacity: 0;
+  pointer-events: none;
 }

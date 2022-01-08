@@ -56,8 +56,8 @@ function Screen(spec = {}) {
     maxFramePoint[0] = vertical ? 1 : aspect
     maxFramePoint[1] = vertical ? 1/aspect : 1
 
-    console.log('minFramePoint: ', minFramePoint.toString())
-    console.log('maxFramePoint: ', maxFramePoint.toString())
+    // console.log('minFramePoint: ', minFramePoint.toString())
+    // console.log('maxFramePoint: ', maxFramePoint.toString())
   }
   
   function screenToFrame(point, output) {
