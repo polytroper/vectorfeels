@@ -6,7 +6,7 @@ function FixedGoal(spec) {
     camera,
     transform,
     ctx,
-    size = 0.1,
+    size = 0.2,
   } = Goal(spec, 'FixedGoal')
   
   const shape = Rect({
@@ -17,7 +17,7 @@ function FixedGoal(spec) {
 
   const sprite = Sprite({
     asset: 'images.cheese',
-    size: size*4,
+    size: size*2,
     parent: self,
   })
   

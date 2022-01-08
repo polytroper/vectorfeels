@@ -9,6 +9,7 @@ function Floater(spec) {
     screen,
     fixed = false,
     fixedRotation = false,
+    rotationCoefficient = 0.03,
     positionOffset = Vector2(),
   } = spec
 
@@ -26,15 +27,36 @@ function Floater(spec) {
   const debugVectorTerminus = Vector2()
 
   const slope = Vector2()
+  const direction = Vector2()
+
+  const smoothDirection = Vector2(1, 0)
   
   function tick() {
     if (!world.running || fixed) {
-      return
+      
+    }
+    else {
+      integrateRK4()
     }
 
-    integrateRK4()
+    if (!fixedRotation) {
+      field.sampleAt(transform.position, velocity)
+
+      if (velocity.x == 0 && velocity.y == 0)
+        direction.set(smoothDirection)
+      else {
+        direction.set(velocity)
+        direction.normalize()
+      }
+
+      smoothDirection.lerp(direction, rotationCoefficient)
+      smoothDirection.normalize()
+
+      transform.rotation = Math.atan2(smoothDirection.y, smoothDirection.x)
+      console.log('Setting floater velocity to ', velocity.toString())
+    }
+
     return
-    
   }
 
   function integrateEuler() {

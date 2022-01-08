@@ -12,7 +12,8 @@ function Evaluator(spec) {
 
     mode,
     level,
-    markDirty,
+    final = false,
+    onFinalDirty = null,
   } = spec
 
   let {
@@ -316,10 +317,11 @@ function Evaluator(spec) {
     tree = math.parse(expression)
     evaluateIfDirty()
 
-    if (markDirty) {
-      // console.log('Marking bundle dirty')
-      markDirty()
-    }
+    if (final)
+      onFinalDirty()
+      
+    for (dependent of dependents)
+      dependent.markChanged(name)
   }
 
   function toString() {

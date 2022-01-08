@@ -34,8 +34,8 @@ function Victory(spec) {
     ctx.font = s*0.25+'px Orbitron'
     ctx.fillText('VICTORY', screenOrigin.x, screenOrigin.y-s*0.05)
 
-    ctx.font = s*0.15+'px Orbitron'
-    ctx.fillText(math.truncate(winDuration, 1)+' SECONDS', screenOrigin.x, screenOrigin.y+s*0.15)
+    // ctx.font = s*0.15+'px Orbitron'
+    // ctx.fillText(math.truncate(winDuration, 1)+' SECONDS', screenOrigin.x, screenOrigin.y+s*0.15)
   }
 
   function show(duration, length) {

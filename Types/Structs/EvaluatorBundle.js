@@ -16,7 +16,7 @@ function EvaluatorBundle(spec) {
   const evaluators = []
 
   let mode = _.reduce(latexs, (r, v) => v == null ? r+1 : r, 0)
-  for (latex of latexs) {
+  _.each(latexs, (latex, i) => {
     if (latex == null) {
       mode--
       // continue
@@ -29,9 +29,10 @@ function EvaluatorBundle(spec) {
       scope,
       level,
       mode,
-      markDirty,
+      final: i == latexs.length-1,
+      onFinalDirty,
     }))
-  }
+  })
 
   const finalEvaluator = _.last(evaluators.filter(v => v.expression != ''))
 
@@ -139,6 +140,10 @@ function EvaluatorBundle(spec) {
       externalVariables,
       scope: _.cloneDeep(scope),
     })
+  }
+
+  function onFinalDirty() {
+    markDirty()
   }
 
   return {

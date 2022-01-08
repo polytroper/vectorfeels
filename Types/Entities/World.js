@@ -228,7 +228,14 @@ function World(spec) {
   }
 
   function modify() {
-    editBundle = bundle.clone()
+    if (self.mode == 2) {
+      buildBundle = bundle.clone()
+      editBundle = bundle.clone()
+    }
+    else if (self.mode == 1) {
+      editBundle = bundle.clone()
+    }
+
     diverged = getDiverged()
     ui.setShowRestartButton(diverged && self.mode == 1)
   }
@@ -289,14 +296,6 @@ function World(spec) {
       },
       level,
     })
-
-    if (self.mode == 2) {
-      buildBundle = bundle.clone()
-      editBundle = bundle.clone()
-    }
-    else if (self.mode == 1) {
-      editBundle = bundle.clone()
-    }
 
     modify()
 
