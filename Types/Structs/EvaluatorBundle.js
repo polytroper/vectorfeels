@@ -15,6 +15,11 @@ function EvaluatorBundle(spec) {
   // Generate evaluators from expressions. Null expression indicates mode shift
   const evaluators = []
 
+  // Compute index of final non-empty expression
+  let finalIndex = latexs.length-1
+  while (latexs[finalIndex] == '' || latexs[finalIndex] == null && finalIndex > 0)
+    finalIndex--
+
   let mode = _.reduce(latexs, (r, v) => v == null ? r+1 : r, 0)
   _.each(latexs, (latex, i) => {
     if (latex == null) {
@@ -29,7 +34,7 @@ function EvaluatorBundle(spec) {
       scope,
       level,
       mode,
-      final: i == latexs.length-1,
+      final: i == finalIndex,
       onFinalDirty,
     }))
   })
@@ -164,6 +169,7 @@ function EvaluatorBundle(spec) {
     evaluate,
     evaluateIfDirty,
 
+    get dirty() {return dirty},
     get value() {return evaluateIfDirty()},
     get evaluations() {
       return _.reduce(evaluators, (sum, v) => sum+v.evaluations, 0)
@@ -312,10 +318,40 @@ function EvaluatorBundle(spec) {
     externalVariables: ['a'],
     latexs: ['test(c)=c+2+a', 'test(1)'],
   })
-  console.log(b.errors)
   Test(b.valid).isTrue()
   Test(b.value).equals(3)
   Test(b.evaluations).equals(2)
   Test(b.sample('a', 5)).equals(8)
   Test(b.evaluations).equals(3)
+
+  // Test determination of finality
+  b = EvaluatorBundle({
+    scope: {...scope},
+    externalVariables: [],
+    latexs: ['1', '2', '3', null, ''],
+  })
+  Test(b.evaluators[2].final).isTrue()
+  Test(b.evaluators[3].final).isFalse()
+  Test(b.evaluators[4].final).isFalse()
+
+  // Test assignment of constant expression
+  b = EvaluatorBundle({
+    scope: {...scope},
+    externalVariables: [],
+    latexs: ['c=1+i', 'c', '2'],
+  })
+  b.evaluators[0].setConstantExpression('c=2')
+  Test(b.evaluators[1].value).equals(2)
+
+  // Test assignment of constant expression when constant referenced in final expression
+  b = EvaluatorBundle({
+    scope: {...scope},
+    externalVariables: [],
+    latexs: ['c=1+i', 'c'],
+  })
+  Test(b.evaluators[1].final).isTrue()
+  b.evaluators[0].setConstantExpression('c=2')
+  Test(b.evaluators[1].dirty).isTrue()
+  Test(b.dirty).isTrue()
+  Test(b.value).equals(2)
 })()

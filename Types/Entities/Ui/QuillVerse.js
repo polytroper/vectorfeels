@@ -46,6 +46,9 @@ function QuillVerse(spec) {
   }
 
   // Bead
+  const roundedPosition = Vector2()
+  const screenPosition = Vector2()
+  
   const beadLayer = d3.select($('#bead-layer'))
 
   const bead = beadLayer.append('g')
@@ -81,8 +84,7 @@ function QuillVerse(spec) {
   bead.call(drag)
 
   refreshBead()
-
-  const screenPosition = Vector2()
+  renderBeadPosition()
 
   // Set quill latex
   
@@ -102,6 +104,8 @@ function QuillVerse(spec) {
     const sign = transform.position.y >= 0 ? '+' : ''
     const y = math.truncate(transform.position.y, 1)
 
+    roundedPosition.set(x, y)
+
     valueString = `${x}${sign}${y}i`
 
     latex = variableString ?
@@ -113,14 +117,16 @@ function QuillVerse(spec) {
     quill.latex(latex)
     quillStatic.latex(latex)
 
-    console.log('Dragging evaluator expression: ', self.expression)
     base.evaluator.setConstantExpression(mathquillToMathJS(latex))
     world.modify()
+    renderBeadPosition()
     // refresh(false)
-
   }
 
   function dragEnd() {
+    transform.position.set(roundedPosition)
+    renderBeadPosition()
+
     dragging = false
     world.save()
   }
@@ -175,6 +181,7 @@ function QuillVerse(spec) {
     if (!beadEnabled) {
       beadEnabled = true
       bead.attr('hide', false)
+      renderBeadPosition()
     }
   }
 
@@ -186,6 +193,9 @@ function QuillVerse(spec) {
   }
 
   function draw() {
+  }
+
+  function renderBeadPosition() {
     camera.worldToScreen(transform.position, screenPosition)
     bead.attr('transform', `translate(${screenPosition.x},${screenPosition.y})`)
   }

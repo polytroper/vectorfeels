@@ -32,7 +32,7 @@ function Collector(spec = {}) {
 
   const sprite = Sprite({
     asset: 'images.mouse',
-    size,
+    size: size*1.3,
     parent: self,
   })
 

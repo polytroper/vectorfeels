@@ -9,7 +9,7 @@ function Floater(spec) {
     screen,
     fixed = false,
     fixedRotation = false,
-    rotationCoefficient = 0.03,
+    rotationCoefficient = 0.04,
     positionOffset = Vector2(),
   } = spec
 

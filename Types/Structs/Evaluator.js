@@ -339,6 +339,8 @@ function Evaluator(spec) {
     get expression() {return expression},
     
     mode,
+    final,
+    
     valid,
     compiles,
     complete,
@@ -464,4 +466,20 @@ function Evaluator(spec) {
   Test(e.definition).isTrue()
   Test(e.parameters).equals(['c'])
   Test(e.name).equals('test')
+
+  // Test constant expression assignment
+  e = Evaluator({
+    scope: {...scope},
+    externalVariables: [],
+    latex: 'c=1',
+  })
+
+  Test(e.valid).isTrue()
+  Test(e.assignment).isTrue()
+  Test(e.name).equals('c')
+  Test(e.value).equals(1)
+  e.setConstantExpression('c=2')
+  Test(e.value).equals(2)
+  Test(e.latex).equals('c=2')
+  Test(e.expression).equals('c=2')
 })()
