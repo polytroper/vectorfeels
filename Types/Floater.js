@@ -53,7 +53,6 @@ function Floater(spec) {
       smoothDirection.normalize()
 
       transform.rotation = Math.atan2(smoothDirection.y, smoothDirection.x)
-      console.log('Setting floater velocity to ', velocity.toString())
     }
 
     return

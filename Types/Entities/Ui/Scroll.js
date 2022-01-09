@@ -196,7 +196,7 @@ function Scroll(spec) {
     return visibleVerses[i]
   }
   
-  function setExpressions(expressions) {
+  function setLatexs(expressions) {
     settingExpressions = true
     clearVerses()
     
@@ -234,7 +234,7 @@ function Scroll(spec) {
     resize,
 
     setMessage,
-    setExpressions,
+    setLatexs,
 
     onModeChanged,
     serialize,

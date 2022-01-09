@@ -199,6 +199,9 @@ function Evaluator(spec) {
     if (!definition) {
       dependencyMap[key].changed = true
       dirty = true
+
+      if (final)
+        onFinalDirty()
     }
 
     for (dependent of dependents)

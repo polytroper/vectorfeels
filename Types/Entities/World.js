@@ -88,9 +88,11 @@ function World(spec) {
     let oldData = data
     data = d
 
+    const latexs = data.latex.edit
+
     if (!_level) {
       bundle = EvaluatorBundle({
-        latexs: d.expressions,
+        latexs,
         externalVariables: ['t', 'p', 'x', 'y'],
         scope: {
           dt: engine.tickDelta,
@@ -100,19 +102,18 @@ function World(spec) {
         level,
       })
 
-      diverged = false
-      ui.setShowRestartButton(diverged)
       buildBundle = bundle.clone()
       editBundle = bundle.clone()
-      ui.scroll.setExpressions(data.expressions)
+      diverged = getDiverged()
+      ui.setShowRestartButton(diverged)
+      ui.scroll.setLatexs(latexs)
     }
   }
 
   function loadBundle(b) {
     bundle = b.clone()
-    editBundle = b.clone()
-    ui.setShowRestartButton(diverged)
-    ui.scroll.setExpressions(bundle.latexs)
+    modify()
+    ui.scroll.setLatexs(bundle.latexs)
     self.sendEvent('onChangeBundle', [bundle])
   }
   
@@ -212,7 +213,10 @@ function World(spec) {
 
   function writeData() {
     const data = Data({
-      expressions: [...ui.scroll.serialize()],
+      latex: {
+        build: buildBundle.latexs,
+        edit: editBundle.latexs,
+      },
     })
 
     data.write()

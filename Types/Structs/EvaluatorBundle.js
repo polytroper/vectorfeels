@@ -16,9 +16,11 @@ function EvaluatorBundle(spec) {
   const evaluators = []
 
   // Compute index of final non-empty expression
-  let finalIndex = latexs.length-1
-  while (latexs[finalIndex] == '' || latexs[finalIndex] == null && finalIndex > 0)
-    finalIndex--
+  let finalIndex = -1
+  for (let i = 0; i < latexs.length; i++) {
+    if (latexs[i] != '' && latexs[i] != null)
+      finalIndex = i
+  }
 
   let mode = _.reduce(latexs, (r, v) => v == null ? r+1 : r, 0)
   _.each(latexs, (latex, i) => {
@@ -328,8 +330,20 @@ function EvaluatorBundle(spec) {
   b = EvaluatorBundle({
     scope: {...scope},
     externalVariables: [],
+    latexs: ['1', '2', '3'],
+  })
+  Test(b.evaluators[0].final).isFalse()
+  Test(b.evaluators[1].final).isFalse()
+  Test(b.evaluators[2].final).isTrue()
+
+  // Test determination of finality with empty expressions on end
+  b = EvaluatorBundle({
+    scope: {...scope},
+    externalVariables: [],
     latexs: ['1', '2', '3', null, ''],
   })
+  Test(b.evaluators[0].final).isFalse()
+  Test(b.evaluators[1].final).isFalse()
   Test(b.evaluators[2].final).isTrue()
   Test(b.evaluators[3].final).isFalse()
   Test(b.evaluators[4].final).isFalse()
@@ -347,9 +361,11 @@ function EvaluatorBundle(spec) {
   b = EvaluatorBundle({
     scope: {...scope},
     externalVariables: [],
-    latexs: ['c=1+i', 'c'],
+    latexs: ['c=1+3i', 'c'],
   })
   Test(b.evaluators[1].final).isTrue()
+  Test(b.value.re).equals(1)
+  Test(b.value.im).equals(3)
   b.evaluators[0].setConstantExpression('c=2')
   Test(b.evaluators[1].dirty).isTrue()
   Test(b.dirty).isTrue()

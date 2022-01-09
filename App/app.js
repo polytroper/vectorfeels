@@ -4,7 +4,7 @@
 var DEBUG = false
 
 // Declare version
-const VERSION = '0.1.0'
+const VERSION = '0.2.0'
 
 // Default level string
 const DEFAULT_LEVEL = `expression: cos(y)+sin(x)*i
