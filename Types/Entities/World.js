@@ -1,10 +1,5 @@
 function World(spec) {
-  const {
-    self,
-    screen,
-    engine,
-    log,
-  } = Entity(spec, 'World')
+  const { self, screen, engine, log } = Entity(spec, 'World')
 
   let editing = false
   let running = false
@@ -27,26 +22,26 @@ function World(spec) {
 
   self.essentials.ctx = screen.ctx
   self.essentials.world = self
-  
+
   const camera = Camera({
     parent: self,
     // debug: true,
   })
 
   self.essentials.camera = camera
-  
+
   const ui = Ui({
     parent: self,
   })
-  
+
   const field = VectorField({
     parent: self,
   })
-  
+
   const victory = Victory({
     parent: self,
   })
-  
+
   const axes = Axes({
     parent: self,
   })
@@ -56,9 +51,9 @@ function World(spec) {
     callbacks: {
       complete: assetsComplete,
       progress: assetsProgress,
-    }
+    },
   })
-  
+
   self.essentials.assets = assets
   self.essentials.field = field
 
@@ -66,18 +61,17 @@ function World(spec) {
     loadData(data)
     modeChanged()
   }
-  
+
   function tick() {
     if (running) runTime += engine.tickDelta
 
-    let runTimeString = (Math.round(runTime*10)/10).toString()
-    
-    if (running && !_.includes(runTimeString, '.'))
-      runTimeString += '.0'
-    
-    ui.runButtonString.innerHTML = 'T='+runTimeString
+    let runTimeString = (Math.round(runTime * 10) / 10).toString()
+
+    if (running && !_.includes(runTimeString, '.')) runTimeString += '.0'
+
+    ui.runButtonString.innerHTML = 'T=' + runTimeString
   }
-  
+
   function draw() {
     screen.ctx.fillStyle = '#000'
     screen.ctx.fillRect(0, 0, screen.width, screen.height)
@@ -93,11 +87,13 @@ function World(spec) {
     if (!_level) {
       bundle = EvaluatorBundle({
         latexs,
-        externalVariables: ['t', 'p', 'x', 'y'],
+        externalVariables: ['t', 'p', 'x', 'y', 'Bee', 'Flower'],
         scope: {
           dt: engine.tickDelta,
           pi: PI,
           tau: TAU,
+          Bee: (spec) => ({ type: 'Collector', ...spec }),
+          Flower: (spec) => ({ type: 'FixedGoal', ...spec }),
         },
         level,
       })
@@ -116,47 +112,47 @@ function World(spec) {
     ui.scroll.setLatexs(bundle.latexs)
     self.sendEvent('onChangeBundle', [bundle])
   }
-  
+
   function startRunning() {
     engine.raiseMessage('startRunning')
 
     running = true
-    
+
     //ui.mathField.blur()
     //ui.expressionEnvelope.setAttribute('disabled', true)
-    
+
     self.sendEvent('startRunning', [])
 
     ui.setShowRestartButton(false)
-    
+
     engine.requestDraw()
     modeChanged()
   }
-  
+
   function stopRunning() {
     engine.raiseMessage('stopRunning')
 
     runTime = 0
     running = false
-    
+
     //ui.mathField.blur()
     //ui.expressionEnvelope.setAttribute('disabled', false)
 
     victory.hide()
     console.log('Loading edit bundle: ', editBundle)
     loadBundle(editBundle)
-    
+
     setTimeout(() => {
       //if (!editing)
-        //ui.mathField.focus()
+      //ui.mathField.focus()
     }, 250)
-    
+
     self.sendEvent('stopRunning', [])
-    
+
     engine.requestDraw()
     modeChanged()
   }
-  
+
   function toggleRunning() {
     if (running) stopRunning()
     else startRunning()
@@ -176,7 +172,7 @@ function World(spec) {
     editing = false
     modeChanged()
   }
-  
+
   function toggleEditing() {
     if (editing) stopEditing()
     else startEditing()
@@ -195,17 +191,15 @@ function World(spec) {
     victory.show(runTime, 0)
 
     engine.raiseMessage('victory', {
-        duration: runTime,
+      duration: runTime,
     })
   }
 
   function getDiverged() {
-    if (editBundle.count != buildBundle.count)
-      return true
-    
+    if (editBundle.count != buildBundle.count) return true
+
     for (let i = 0; i < editBundle.count; i++) {
-      if (editBundle.latexs[i] != buildBundle.latexs[i])
-        return true
+      if (editBundle.latexs[i] != buildBundle.latexs[i]) return true
     }
 
     return false
@@ -235,8 +229,7 @@ function World(spec) {
     if (self.mode == 2) {
       buildBundle = bundle.clone()
       editBundle = bundle.clone()
-    }
-    else if (self.mode == 1) {
+    } else if (self.mode == 1) {
       editBundle = bundle.clone()
     }
 
@@ -245,40 +238,42 @@ function World(spec) {
   }
 
   // Asset Loading Events
-  
+
   function assetsComplete() {
     console.log(`All World assets loaded`)
-    
+
     ui.loadingVeilString.innerHTML = 'click to begin'
     ui.loadingVeil.addEventListener('click', loadingVeilClicked)
   }
-  
+
   function assetsProgress(progress, total) {
     console.log(`Loaded ${progress} of ${total} assets`)
-    
-    ui.loadingVeilString.innerHTML = `loading…<br>${Math.round(100*progress/total)}%`
+
+    ui.loadingVeilString.innerHTML = `loading…<br>${Math.round(
+      (100 * progress) / total
+    )}%`
   }
-  
+
   function loadingVeilClicked() {
     console.log(`Loading veil clicked`)
-    
+
     const lv = d3.select(ui.loadingVeil)
-    
+
     lv.style('opacity', '1')
       .transition()
-        .duration(1000)
-        .style('opacity', '0')
-      .on('end', v => {
+      .duration(1000)
+      .style('opacity', '0')
+      .on('end', (v) => {
         lv.style('display', 'none')
       })
   }
-  
+
   // HTML Events
 
-  function onChangeLatexs(latexs, write=true) {
+  function onChangeLatexs(latexs, write = true) {
     // console.log('Expressions changed to:', expressions)
     // console.log('Mathjs: ', expressions.map(mathquillToMathJS))
-    
+
     if (level) {
       level.destroy()
     }
@@ -292,11 +287,13 @@ function World(spec) {
 
     bundle = EvaluatorBundle({
       latexs,
-      externalVariables: ['t', 'p', 'x', 'y'],
+      externalVariables: ['t', 'p', 'x', 'y', 'Bee', 'Flower'],
       scope: {
         dt: engine.tickDelta,
         pi: PI,
         tau: TAU,
+        Bee: (spec) => ({ type: 'Collector', ...spec }),
+        Flower: (spec) => ({ type: 'FixedGoal', ...spec }),
       },
       level,
     })
@@ -305,18 +302,15 @@ function World(spec) {
 
     self.sendEvent('onChangeBundle', [bundle])
 
-    if (write)
-      writeData()
+    if (write) writeData()
   }
 
   function onChangeBundle() {
     if (bundle.valid) {
       ui.setMessage('')
-    }
-    else if (!bundle.compiles) {
+    } else if (!bundle.compiles) {
       ui.setMessage('Does not compile!')
-    }
-    else if (!bundle.complete) {
+    } else if (!bundle.complete) {
       ui.setMessage('Unknown variable!')
     }
   }
@@ -336,26 +330,21 @@ function World(spec) {
   function onKeyUp(event) {
     if (event.keyCode === 13) {
       if (event.shiftKey) {
-        if (running)
-          stopRunning()
-          
+        if (running) stopRunning()
+
         toggleEditing()
-      }
-      else if (editing) {
-        
-      }
-      else
-        toggleRunning()
+      } else if (editing) {
+      } else toggleRunning()
     }
     if (event.keyCode === 27) {
-      if (event.shiftKey)  {
+      if (event.shiftKey) {
         openDataPage()
         event.preventDefault()
       }
     }
   }
 
-  window.addEventListener("keyup", onKeyUp)
+  window.addEventListener('keyup', onKeyUp)
 
   function onKeyDown(event) {
     if (event.keyCode === 13) {
@@ -365,13 +354,13 @@ function World(spec) {
     }
   }
 
-  window.addEventListener("keydown", onKeyDown)
-  
+  window.addEventListener('keydown', onKeyDown)
+
   return self.extend({
     start,
     tick,
     draw,
-    
+
     save,
     modify,
     toggleRunning,
@@ -379,15 +368,19 @@ function World(spec) {
     onChangeBundle,
     onChangeLatexs,
 
-    get running() {return running},
-    get runTime() {return runTime},
-    get bundle() {return bundle},
+    get running() {
+      return running
+    },
+    get runTime() {
+      return runTime
+    },
+    get bundle() {
+      return bundle
+    },
 
     get mode() {
-      if (running)
-        return 0
-      if (editing)
-        return 2
+      if (running) return 0
+      if (editing) return 2
       return 1
     },
   })
